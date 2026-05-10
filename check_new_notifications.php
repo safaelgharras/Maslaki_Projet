@@ -31,6 +31,12 @@ try {
     $stmtLatest->execute([$userId, $userId]);
     $latest = $stmtLatest->fetch(PDO::FETCH_ASSOC);
 
+    if ($latest) {
+        require_once "includes/lang_helper.php";
+        $latest['title'] = __($latest['title']);
+        $latest['message'] = __($latest['message']);
+    }
+
     header('Content-Type: application/json');
     echo json_encode([
         "unread_count" => (int)$unreadCount,

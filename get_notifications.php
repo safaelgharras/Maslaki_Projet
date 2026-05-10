@@ -2,6 +2,8 @@
 session_start();
 require "config/DataBase.php";
 
+require_once "includes/lang_helper.php";
+
 if (!isset($_SESSION["user_id"])) {
     header('Content-Type: application/json');
     echo json_encode([]);
@@ -23,19 +25,19 @@ function time_ago($timestamp) {
     $years          = round($seconds / 31553280);
 
     if($seconds <= 60) {
-        return "À l'instant";
+        return __('just_now');
     } else if($minutes <= 60) {
-        return $minutes == 1 ? "Il y a 1 minute" : "Il y a $minutes minutes";
+        return $minutes == 1 ? __('one_minute_ago') : sprintf(__('minutes_ago'), $minutes);
     } else if($hours <= 24) {
-        return $hours == 1 ? "Il y a 1 heure" : "Il y a $hours heures";
+        return $hours == 1 ? __('one_hour_ago') : sprintf(__('hours_ago'), $hours);
     } else if($days <= 7) {
-        return $days == 1 ? "Hier" : "Il y a $days jours";
+        return $days == 1 ? __('yesterday') : sprintf(__('days_ago'), $days);
     } else if($weeks <= 4.3) {
-        return $weeks == 1 ? "Il y a 1 semaine" : "Il y a $weeks semaines";
+        return $weeks == 1 ? __('one_week_ago') : sprintf(__('weeks_ago'), $weeks);
     } else if($months <= 12) {
-        return $months == 1 ? "Il y a 1 mois" : "Il y a $months mois";
+        return $months == 1 ? __('one_month_ago') : sprintf(__('months_ago'), $months);
     } else {
-        return $years == 1 ? "Il y a 1 an" : "Il y a $years ans";
+        return $years == 1 ? __('one_year_ago') : sprintf(__('years_ago'), $years);
     }
 }
 
@@ -54,6 +56,8 @@ try {
 
     foreach ($notifications as &$n) {
         $n['time_ago'] = time_ago($n['created_at']);
+        $n['title'] = __($n['title']);
+        $n['message'] = __($n['message']);
         // Add icon based on type
         switch($n['type']) {
             case 'system': $n['icon'] = '⚙️'; break;

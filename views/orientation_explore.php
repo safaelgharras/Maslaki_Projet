@@ -2,7 +2,7 @@
 session_start();
 require "../config/DataBase.php";
 
-$pageTitle = "Explorer l'Orientation";
+$pageTitle = __("explore_orientation");
 $base = "../";
 require "../includes/header.php";
 
@@ -10,8 +10,8 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
 ?>
 
 <div class="container" style="margin-top: 40px;">
-    <h1 class="page-title">Découvre ton futur parcours</h1>
-    <p class="section-subtitle" style="text-align:center; margin-bottom: 50px; color: var(--text-muted);">Explore les domaines d'études au Maroc par catégorie</p>
+    <h1 class="page-title"><?php echo __('discover_future_path'); ?></h1>
+    <p class="section-subtitle" style="text-align:center; margin-bottom: 50px; color: var(--text-muted);"><?php echo __('explore_domains_by_category'); ?></p>
 
     <div class="orientation-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-bottom: 60px;">
         <?php foreach($categories as $index => $cat): ?>
@@ -19,8 +19,8 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
                 <div class="card-content">
                     <div class="category-icon"><?php echo getCategoryEmoji($cat['nom']); ?></div>
                     <h3><?php echo htmlspecialchars($cat['nom']); ?></h3>
-                    <p>Découvre les filières et écoles dans ce domaine.</p>
-                    <span class="explore-btn">Explorer →</span>
+                    <p><?php echo __('discover_streams_schools_domain'); ?></p>
+                    <span class="explore-btn"><?php echo __('explore'); ?> <?php echo isRTL() ? '←' : '→'; ?></span>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -31,7 +31,7 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
 <div id="domainsModal" class="modal-overlay" style="display:none;">
     <div class="modal-content glassmorphism">
         <div class="modal-header">
-            <h2 id="modalTitle">Domaines</h2>
+            <h2 id="modalTitle"><?php echo __('domains'); ?></h2>
             <button class="close-modal" onclick="closeModal()">×</button>
         </div>
         <div id="domainsList" class="domains-list">
@@ -166,11 +166,11 @@ function showDomains(catId, catName) {
         .then(res => res.json())
         .then(data => {
             if (data.length === 0) {
-                list.innerHTML = '<p>Aucun domaine trouvé.</p>';
+                list.innerHTML = `<p>${<?php echo json_encode(__('no_domain_found')); ?>}</p>`;
                 return;
             }
             list.innerHTML = data.map(d => `
-                <a href="institutions.php?cat_id=${catId}&domain_id=${d.id}" class="domain-item">
+                <a href="domain_details.php?id=${d.id}" class="domain-item">
                     ${d.nom}
                 </a>
             `).join('');

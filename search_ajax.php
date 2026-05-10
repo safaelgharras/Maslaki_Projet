@@ -5,10 +5,13 @@ $search = isset($_GET["search"]) ? trim($_GET["search"]) : "";
 $cityId = isset($_GET["city_id"]) ? trim($_GET["city_id"]) : "";
 $catId = isset($_GET["cat_id"]) ? trim($_GET["cat_id"]) : "";
 $domainId = isset($_GET["domain_id"]) ? trim($_GET["domain_id"]) : "";
+$filiereId = isset($_GET["filiere_id"]) ? trim($_GET["filiere_id"]) : "";
 $bacId = isset($_GET["bac_id"]) ? trim($_GET["bac_id"]) : "";
 $type = isset($_GET["type"]) ? trim($_GET["type"]) : "";
 
-$sql = "SELECT DISTINCT i.* FROM institutions i 
+$sql = "SELECT i.*, v.nom as city_name, GROUP_CONCAT(DISTINCT f.nom SEPARATOR ', ') as filieres_list 
+        FROM institutions i 
+        LEFT JOIN villes v ON i.ville_id = v.id
         LEFT JOIN institution_filieres ifil ON i.id = ifil.institution_id
         LEFT JOIN filieres f ON ifil.filiere_id = f.id
         LEFT JOIN domains d ON f.domain_id = d.id
@@ -38,6 +41,11 @@ if (!empty($domainId)) {
     $params[] = $domainId;
 }
 
+if (!empty($filiereId)) {
+    $sql .= " AND ifil.filiere_id = ?";
+    $params[] = $filiereId;
+}
+
 if (!empty($bacId)) {
     $sql .= " AND ibt.bac_type_id = ?";
     $params[] = $bacId;
@@ -52,6 +60,7 @@ if (!empty($type)) {
     }
 }
 
+$sql .= " GROUP BY i.id";
 $sql .= " ORDER BY i.is_popular DESC, i.name ASC";
 
 $stmt = $pdo->prepare($sql);
@@ -62,6 +71,9 @@ require_once "includes/lang_helper.php";
 foreach ($institutions as &$inst) {
     $inst['name'] = getLocalizedDbField($inst, 'name');
     $inst['description'] = getLocalizedDbField($inst, 'description');
+    if (empty($inst['city']) && !empty($inst['city_name'])) {
+        $inst['city'] = $inst['city_name'];
+    }
 }
 
 

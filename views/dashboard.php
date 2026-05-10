@@ -65,7 +65,7 @@ try {
                     <div class="q-icon">🏫</div>
                     <div class="q-info">
                         <h3><?php echo __('institutions'); ?></h3>
-                        <p><?php echo str_replace('<?php echo $totalSchools; ?>', $totalSchools, __('hero_subtitle')); // Fallback or better use a specific key ?>Explorez <?php echo $totalSchools; ?> écoles</p>
+                        <p><?php echo sprintf(__('explore_n_schools'), $totalSchools); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>

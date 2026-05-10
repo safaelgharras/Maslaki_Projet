@@ -1,5 +1,5 @@
 <?php
-$pageTitle = "Détails de l'établissement";
+$pageTitle = __("institution_details");
 require "../includes/header.php";
 require "../config/DataBase.php";
 
@@ -28,7 +28,7 @@ $stmt->execute([$id]);
 $inst = $stmt->fetch();
 
 if (!$inst) {
-    header("Location: institutions.php?error=École introuvable");
+    header("Location: institutions.php?error=" . urlencode(__('school_not_found')));
     exit();
 }
 
@@ -68,17 +68,7 @@ $reviewStmt->execute([$id]);
 $reviews = $reviewStmt->fetchAll();
 
 function translateType($type) {
-    $map = [
-        'Engineering' => 'Ingénierie',
-        'Business' => 'Commerce',
-        'Science' => 'Sciences',
-        'Technical' => 'Technique',
-        'Preparatory' => 'Classes Prépa',
-        'Private' => 'Privé',
-        'Education' => 'Éducation',
-        'University' => 'Université'
-    ];
-    return $map[$type] ?? $type;
+    return __('type_' . strtolower($type));
 }
 
 function resolveDetailImage($path, $name) {
@@ -112,13 +102,13 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
     <div class="detail-grid">
         <div class="detail-main">
             <section class="info-card">
-                <h2>À propos de l'établissement</h2>
+                <h2><?php echo __('about_institution'); ?></h2>
                 <p class="description"><?php echo nl2br(htmlspecialchars($inst['description'])); ?></p>
             </section>
 
             <?php if (count($images) > 1): ?>
             <section class="info-card">
-                <h2>Galerie Photos</h2>
+                <h2><?php echo __('photo_gallery'); ?></h2>
                 <div class="image-gallery">
                     <?php foreach($images as $img): ?>
                         <div class="gallery-item">
@@ -130,7 +120,7 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
             <?php endif; ?>
 
             <section class="info-card">
-                <h2>Filières disponibles</h2>
+                <h2><?php echo __('available_streams'); ?></h2>
                 <div class="filieres-list">
                     <?php if (count($filieres) > 0): ?>
                         <?php foreach($filieres as $f): ?>
@@ -141,27 +131,27 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                                         <span class="domain-tag"><?php echo htmlspecialchars($f['domain_nom']); ?></span>
                                     <?php endif; ?>
                                 </div>
-                                <p><?php echo htmlspecialchars($f['description'] ?? 'Aucune description disponible.'); ?></p>
+                                <p><?php echo htmlspecialchars($f['description'] ?? __('no_description')); ?></p>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="empty-msg">Aucune filière répertoriée pour le moment.</p>
+                        <p class="empty-msg"><?php echo __('no_streams_listed'); ?></p>
                     <?php endif; ?>
                 </div>
             </section>
 
             <section class="info-card">
-                <h2>Avis des étudiants</h2>
+                <h2><?php echo __('student_reviews'); ?></h2>
                 <?php if ($isLoggedIn): ?>
                     <div class="review-form">
                         <form method="POST" action="../submit_review.php">
                             <input type="hidden" name="institution_id" value="<?php echo $id; ?>">
-                            <textarea name="content" placeholder="Partagez votre avis sur cet établissement..." required></textarea>
-                            <button type="submit" class="btn btn-primary">Envoyer l'avis</button>
+                            <textarea name="content" placeholder="<?php echo __('share_review'); ?>" required></textarea>
+                            <button type="submit" class="btn btn-primary"><?php echo __('submit_review'); ?></button>
                         </form>
                     </div>
                 <?php else: ?>
-                    <p class="login-msg"><a href="login.php">Connectez-vous</a> pour laisser un avis.</p>
+                    <p class="login-msg"><?php echo __('login_to_review'); ?></p>
                 <?php endif; ?>
 
                 <div class="reviews-list">
@@ -180,15 +170,15 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 
         <aside class="detail-sidebar">
             <div class="sidebar-card">
-                <h3>Informations Admission</h3>
+                <h3><?php echo __('admission_info'); ?></h3>
                 <ul class="info-list">
                     <li>
-                        <strong>Seuil d'accès (Général):</strong>
+                        <strong><?php echo __('general_access_threshold'); ?></strong>
                         <span><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?> / 20</span>
                     </li>
                     <?php if (count($bac_requirements) > 0): ?>
                     <li>
-                        <strong>Seuils par type de Bac:</strong>
+                        <strong><?php echo __('thresholds_by_bac'); ?></strong>
                         <div class="bac-req-list">
                             <?php foreach($bac_requirements as $bac): ?>
                                 <div class="bac-req-item">
@@ -200,28 +190,28 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                     </li>
                     <?php endif; ?>
                     <li>
-                        <strong>Diplôme délivré:</strong>
-                        <span><?php echo htmlspecialchars($inst['diplome'] ?? 'Non spécifié'); ?></span>
+                        <strong><?php echo __('delivered_diploma'); ?></strong>
+                        <span><?php echo htmlspecialchars($inst['diplome'] ?? __('not_specified')); ?></span>
                     </li>
                     <li>
-                        <strong>Durée d'études:</strong>
+                        <strong><?php echo __('study_duration'); ?></strong>
                         <span><?php echo htmlspecialchars($inst['duree_etudes'] ?? '--'); ?></span>
                     </li>
                     <li>
-                        <strong>Pré-requis:</strong>
+                        <strong><?php echo __('prerequisites'); ?></strong>
                         <div class="req-text"><?php echo nl2br(htmlspecialchars($inst['requirements'])); ?></div>
                     </li>
                 </ul>
                 
                 <?php if ($inst['site_web']): ?>
                     <a href="<?php echo htmlspecialchars($inst['site_web']); ?>" target="_blank" class="btn btn-accent btn-full">
-                        🌐 Site officiel
+                        🌐 <?php echo __('official_website'); ?>
                     </a>
                 <?php endif; ?>
                 
                 <?php if ($isLoggedIn): ?>
                     <a href="../save_school.php?id=<?php echo $id; ?>" class="btn btn-outline btn-full">
-                        ❤ Sauvegarder
+                        ❤ <?php echo __('save'); ?>
                     </a>
                 <?php endif; ?>
             </div>

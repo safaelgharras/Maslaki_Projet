@@ -163,6 +163,11 @@ html[dir="rtl"] .notif-dropdown { left: 0; right: auto; }
 html[dir="rtl"] .toast { right: auto; left: 20px; }
 html[dir="rtl"] .sidebar-card { text-align: right; }
 html[dir="rtl"] .auth-container { text-align: right; }
+/* Refinements for exactly matching LTR visual logic */
+html[dir="rtl"] .notif-full-item:hover { transform: translateX(-5px); }
+html[dir="rtl"] .notif-full-item.unread { border-right: 4px solid var(--primary); border-left: 1px solid var(--border-color); }
+html[dir="rtl"] .q-primary { border-right: 4px solid var(--accent); border-left: none; }
+html[dir="rtl"] .q-arrow { transform: rotate(180deg); display: inline-block; }
 </style>
 
 <script>
@@ -353,6 +358,20 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('theme', 'dark');
         });
     }
+
+    // Language Change Animation
+    const langLinks = document.querySelectorAll('.lang-selector a');
+    langLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            document.body.style.transition = 'opacity 0.3s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        });
+    });
 
     // Mobile Menu
     const menuToggle = document.querySelector('.menu-toggle');
