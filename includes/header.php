@@ -3,31 +3,25 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Auto-migration check (100% Work Guarantee)
 require_once __DIR__ . "/../config/DataBase.php";
 require_once __DIR__ . "/lang_helper.php";
 
-try {
-    $pdo->query("SELECT 1 FROM villes LIMIT 1");
-} catch (Exception $e) {
-    // Table missing, run migration automatically
-    $sqlFile = __DIR__ . "/../database/schema_update.sql";
-    if (file_exists($sqlFile)) {
-        $sql = file_get_contents($sqlFile);
-        $pdo->exec($sql);
-    }
-}
-
-// Detect base path (works from root or views folder)
+// Detect base path
 $isInViews = strpos($_SERVER['PHP_SELF'], '/views/') !== false;
 $base = $isInViews ? '../' : '';
 
-// Get unread notifications count
+// Get unread notifications count (New Schema)
 $unreadCount = 0;
 if (isset($_SESSION['user_id'])) {
     try {
-        $notifStmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE student_id = ? AND is_read = 0");
-        $notifStmt->execute([$_SESSION['user_id']]);
+        $userId = $_SESSION['user_id'];
+        $sql = "SELECT COUNT(*) FROM notifications n
+                LEFT JOIN user_notifications un ON n.id = un.notification_id AND un.user_id = ?
+                WHERE (n.is_global = 1 OR n.target_user_id = ?)
+                AND (un.is_read IS NULL OR un.is_read = 0)
+                AND (un.is_deleted IS NULL OR un.is_deleted = 0)";
+        $notifStmt = $pdo->prepare($sql);
+        $notifStmt->execute([$userId, $userId]);
         $unreadCount = $notifStmt->fetchColumn();
     } catch (Exception $e) {}
 }
@@ -47,6 +41,8 @@ if (isset($_SESSION['user_id'])) {
 </head>
 <body>
 
+    <div class="toast-container" id="toastContainer"></div>
+
     <nav class="navbar">
         <div class="nav-container">
             <a href="<?php echo $base; ?>index.php" class="brand">
@@ -57,57 +53,63 @@ if (isset($_SESSION['user_id'])) {
             <ul class="nav-links">
                 <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
+                <li><a href="<?php echo $base; ?>views/orientation_explore.php"><?php echo __('orientation'); ?></a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent"><?php echo __('ai_orientation'); ?> 🤖</a></li>
+                    <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent ai-btn-nav"><?php echo __('ai_orientation'); ?> 🤖</a></li>
                     <li class="notif-menu-item">
-                        <div class="notif-icon-wrapper" id="notifBtn">
+                        <div class="notif-icon-wrapper" id="notifBtn" title="<?php echo __('notifications'); ?>">
                             <span class="notif-bell">🔔</span>
                             <?php if ($unreadCount > 0): ?>
-                                <span class="notif-badge"><?php echo $unreadCount; ?></span>
+                                <span class="notif-badge" id="notifBadge"><?php echo $unreadCount; ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="notif-dropdown" id="notifDropdown">
                             <div class="notif-dropdown-header">
                                 <h3><?php echo __('notifications'); ?></h3>
-                                <button id="markAllRead">Tout marquer comme lu</button>
+                                <button id="markAllRead" class="btn-text-only"><?php echo __('mark_all_read'); ?></button>
                             </div>
                             <div class="notif-dropdown-list" id="notifList">
-                                <!-- Loaded via AJAX -->
-                                <div class="notif-loading">Chargement...</div>
+                                <div class="notif-loading"><?php echo __('loading'); ?></div>
                             </div>
+                            <a href="<?php echo $base; ?>views/notifications.php" class="notif-see-all"><?php echo __('see_all_notifications'); ?></a>
                         </div>
                     </li>
                     <li class="user-menu-item">
-                        <div class="user-profile-icon" id="profileBtn">👤</div>
+                        <div class="user-profile-icon" id="profileBtn" title="<?php echo __('profile'); ?>">👤</div>
                         <div class="profile-dropdown" id="profileDropdown">
-                            <a href="<?php echo $base; ?>views/dashboard.php" class="dropdown-link"><?php echo __('profile'); ?></a>
+                            <a href="<?php echo $base; ?>views/dashboard.php" class="dropdown-link">
+                                <span class="dropdown-icon">👤</span> <?php echo __('profile'); ?>
+                            </a>
                             <div class="dropdown-divider"></div>
                             
                             <div class="dropdown-section">
-                                <label>Apparence</label>
+                                <label><?php echo __('appearance'); ?></label>
                                 <div class="theme-switch">
-                                    <button id="themeLightBtn" class="theme-switch-btn active">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <span>Clair</span>
-                                    </button>
-                                    <button id="themeDarkBtn" class="theme-switch-btn">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                                        <span>Sombre</span>
-                                    </button>
+                                    <button id="themeLightBtn" class="theme-switch-btn active">☀️ <?php echo __('light'); ?></button>
+                                    <button id="themeDarkBtn" class="theme-switch-btn">🌙 <?php echo __('dark'); ?></button>
                                 </div>
                             </div>
                             
                             <div class="dropdown-section">
-                                <label>Langue</label>
+                                <label><?php echo __('language'); ?></label>
                                 <div class="lang-selector">
-                                    <a href="?lang=fr" class="<?php echo getLang() == 'fr' ? 'active' : ''; ?>">FR</a>
-                                    <a href="?lang=en" class="<?php echo getLang() == 'en' ? 'active' : ''; ?>">EN</a>
-                                    <a href="?lang=ar" class="<?php echo getLang() == 'ar' ? 'active' : ''; ?>">AR</a>
+                                    <?php 
+                                    $current_params = $_GET;
+                                    function getLangUrl($l, $params) {
+                                        $params['lang'] = $l;
+                                        return '?' . http_build_query($params);
+                                    }
+                                    ?>
+                                    <a href="<?php echo getLangUrl('fr', $current_params); ?>" class="<?php echo getLang() == 'fr' ? 'active' : ''; ?>">FR</a>
+                                    <a href="<?php echo getLangUrl('en', $current_params); ?>" class="<?php echo getLang() == 'en' ? 'active' : ''; ?>">EN</a>
+                                    <a href="<?php echo getLangUrl('ar', $current_params); ?>" class="<?php echo getLang() == 'ar' ? 'active' : ''; ?>">AR</a>
                                 </div>
                             </div>
                             
                             <div class="dropdown-divider"></div>
-                            <a href="<?php echo $base; ?>views/logout.php" class="dropdown-link logout-red"><?php echo __('logout'); ?></a>
+                            <a href="<?php echo $base; ?>views/logout.php" class="dropdown-link logout-red">
+                                <span class="dropdown-icon">🚪</span> <?php echo __('logout'); ?>
+                            </a>
                         </div>
                     </li>
                 <?php else: ?>
@@ -116,141 +118,184 @@ if (isset($_SESSION['user_id'])) {
                 <?php endif; ?>
             </ul>
 
-            <div class="menu-toggle">☰</div>
         </div>
     </nav>
-</header>
 
 <style>
-.navbar { height: 85px; transition: var(--transition); }
-.nav-container { height: 100%; display: flex; align-items: center; justify-content: space-between; }
-.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.logo-box { background: var(--accent); color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(255, 109, 0, 0.3); }
-.logo-text { font-size: 1.6rem; font-weight: 800; color: var(--primary-dark); letter-spacing: -1px; }
+.notif-see-all { display: block; text-align: center; padding: 12px; font-size: 0.85rem; font-weight: 700; color: var(--primary); background: var(--bg-light); text-decoration: none; border-top: 1px solid var(--border-color); transition: var(--transition); }
+.notif-see-all:hover { background: var(--primary); color: #fff; }
 
-.nav-links { display: flex; align-items: center; gap: 20px; list-style: none; margin-left: auto; margin-right: 0; }
-.nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 0.95rem; transition: var(--transition); }
-.nav-links a:hover { color: var(--accent); }
+/* Branding Styles */
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s ease; }
+.brand:hover { transform: scale(1.02); }
+.logo-box { background: var(--orange, #f97316); color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3); }
+.logo-text { font-size: 1.6rem; font-weight: 900; color: var(--primary-dark, var(--primary)); letter-spacing: -0.5px; }
 
-.menu-toggle { display: none; } /* Hidden on desktop */
-.btn-accent { padding: 10px 20px !important; border-radius: 12px !important; }
-
-/* Profile Dropdown Styles */
-.user-menu-item { position: relative; list-style: none; margin-left: 10px; }
-.user-profile-icon { width: 40px; height: 40px; background: #f8fafc; border: 1.5px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 1.2rem; }
-.user-profile-icon:hover { border-color: var(--primary); background: #f1f5f9; }
-
-.profile-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: var(--white); min-width: 180px; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 2000; border: 1px solid var(--border-color); }
-.profile-dropdown.active { display: block; animation: fadeIn 0.2s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.dropdown-link { display: block; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 0.9rem; transition: var(--transition); }
-.dropdown-link:hover { background: var(--bg-light); color: var(--primary); }
-[data-theme="dark"] .dropdown-link:hover { background: #334155; color: #fff; }
-.dropdown-link.logout-red { color: #e11d48; }
-.dropdown-link.logout-red:hover { background: rgba(225, 29, 72, 0.1); }
-
-.dropdown-divider { height: 1px; background: var(--border-color); margin: 8px 0; }
-.dropdown-section { padding: 5px 16px; margin-bottom: 5px; }
-.dropdown-section label { display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; }
-.dropdown-btn { width: 100%; padding: 8px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); transition: var(--transition); }
-.dropdown-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-.theme-switch { display: flex; background: #f1f5f9; border-radius: 8px; padding: 4px; gap: 4px; border: 1px solid var(--border-color); }
-[data-theme="dark"] .theme-switch { background: #0f172a; }
-.theme-switch-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; border: none; border-radius: 6px; background: transparent; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-.theme-switch-btn:hover { color: var(--text-dark); }
-.theme-switch-btn.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
-[data-theme="dark"] .theme-switch-btn.active { background: #1e293b; color: var(--text-dark); border-color: rgba(255,255,255,0.1); }
-
-.lang-selector { display: flex; gap: 5px; }
-.lang-selector a { flex: 1; text-align: center; padding: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border-color); border-radius: 6px; transition: var(--transition); text-decoration: none; color: var(--text-dark); }
-.lang-selector a:hover { border-color: var(--primary); }
-.lang-selector a.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-/* Notification Styles */
-.notif-menu-item { position: relative; list-style: none; margin-left: 20px; }
-.notif-icon-wrapper { position: relative; cursor: pointer; font-size: 1.4rem; transition: var(--transition); padding: 5px; }
-.notif-icon-wrapper:hover { transform: scale(1.1); }
-.notif-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: #fff; font-size: 0.7rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-.notif-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: var(--white); width: 320px; border-radius: 16px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); display: none; z-index: 2000; overflow: hidden; }
-.notif-dropdown.active { display: block; animation: fadeIn 0.2s ease-out; }
-
-.notif-dropdown-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-light); }
-.notif-dropdown-header h3 { font-size: 1rem; font-weight: 700; color: var(--primary); }
-.notif-dropdown-header button { background: none; border: none; color: var(--primary-light); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-.notif-dropdown-header button:hover { text-decoration: underline; }
-
-.notif-dropdown-list { max-height: 400px; overflow-y: auto; }
-.notif-item { padding: 15px 20px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; display: flex; gap: 12px; }
-.notif-item:hover { background: var(--bg-light); }
-.notif-item.unread { background: rgba(59, 130, 246, 0.08); }
-.notif-item.unread:hover { background: rgba(59, 130, 246, 0.15); }
-.notif-content p { font-size: 0.85rem; color: var(--text-dark); margin-bottom: 4px; line-height: 1.4; }
-.notif-time { font-size: 0.75rem; color: var(--text-muted); }
-.notif-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
-.notif-loading { padding: 20px; text-align: center; color: var(--text-muted); }
-
-@media (max-width: 992px) {
-    .nav-links { display: none; width: 100%; flex-direction: column; position: absolute; top: 85px; left: 0; background: var(--white); padding: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-bottom: 1px solid var(--border-color); z-index: 1000; gap: 15px; align-items: flex-start; }
-    .nav-links.mobile-active { display: flex; }
-    .menu-toggle { display: block; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
-    .user-menu-item, .notif-menu-item { margin-left: 0; }
+/* Notification Dropdown Animation */
+.notif-dropdown {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: block; /* Ensure it stays in DOM for transition */
+    visibility: hidden;
+}
+.notif-dropdown.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    visibility: visible;
 }
 
+/* RTL Global Adjustments */
+html[dir="rtl"] { text-align: right; }
+html[dir="rtl"] body { direction: rtl; }
+html[dir="rtl"] .nav-links { margin-right: auto; margin-left: 0; }
+html[dir="rtl"] .hero-text h1, html[dir="rtl"] .hero-text p { text-align: right; }
+html[dir="rtl"] .filter-sidebar { text-align: right; }
+html[dir="rtl"] .card-info-row { justify-content: flex-start; }
+html[dir="rtl"] .card-actions { flex-direction: row-reverse; }
+html[dir="rtl"] .details-arrow { transform: rotate(180deg); }
+html[dir="rtl"] .btn-link { float: right; }
+html[dir="rtl"] .nav-container { flex-direction: row; }
+html[dir="rtl"] .profile-dropdown { left: 0; right: auto; }
+html[dir="rtl"] .notif-dropdown { left: 0; right: auto; }
+html[dir="rtl"] .toast { right: auto; left: 20px; }
+html[dir="rtl"] .sidebar-card { text-align: right; }
+html[dir="rtl"] .auth-container { text-align: right; }
+/* Refinements for exactly matching LTR visual logic */
+html[dir="rtl"] .notif-full-item:hover { transform: translateX(-5px); }
+html[dir="rtl"] .notif-full-item.unread { border-right: 4px solid var(--primary); border-left: 1px solid var(--border-color); }
+html[dir="rtl"] .q-primary { border-right: 4px solid var(--accent); border-left: none; }
+html[dir="rtl"] .q-arrow { transform: rotate(180deg); display: inline-block; }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const profileBtn = document.getElementById('profileBtn');
-    const profileDropdown = document.getElementById('profileDropdown');
-
-    if (profileBtn && profileDropdown) {
-        profileBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('active');
-        });
-
-        document.addEventListener('click', function() {
-            profileDropdown.classList.remove('active');
-        });
-    }
-
+    const base = '<?php echo $base; ?>';
     const notifBtn = document.getElementById('notifBtn');
     const notifDropdown = document.getElementById('notifDropdown');
     const notifList = document.getElementById('notifList');
+    const notifBadge = document.getElementById('notifBadge');
+    const toastContainer = document.getElementById('toastContainer');
+    
+    let lastNotifId = localStorage.getItem('lastNotifId') || 0;
 
-    if (notifBtn && notifDropdown) {
+    // Polling function
+    function checkNotifications() {
+        fetch(base + 'check_new_notifications.php')
+            .then(res => res.json())
+            .then(data => {
+                // Update badge
+                if (data.unread_count > 0) {
+                    if (!document.getElementById('notifBadge')) {
+                        const newBadge = document.createElement('span');
+                        newBadge.id = 'notifBadge';
+                        newBadge.className = 'notif-badge notif-badge-anim';
+                        newBadge.textContent = data.unread_count;
+                        document.getElementById('notifBtn').appendChild(newBadge);
+                    } else {
+                        const badge = document.getElementById('notifBadge');
+                        if (badge.textContent != data.unread_count) {
+                            badge.textContent = data.unread_count;
+                            badge.classList.add('notif-badge-anim');
+                            setTimeout(() => badge.classList.remove('notif-badge-anim'), 500);
+                        }
+                    }
+                } else if (document.getElementById('notifBadge')) {
+                    document.getElementById('notifBadge').remove();
+                }
+
+                // Check for new latest notification to show toast
+                if (data.latest && data.latest.id > lastNotifId) {
+                    showToast(data.latest);
+                    lastNotifId = data.latest.id;
+                    localStorage.setItem('lastNotifId', lastNotifId);
+                }
+            });
+    }
+
+    function showToast(notif) {
+        const toast = document.createElement('div');
+        toast.className = `toast type-${notif.type}`;
+        
+        let icon = '🔔';
+        switch(notif.type) {
+            case 'system': icon = '⚙️'; break;
+            case 'school': icon = '🏫'; break;
+            case 'maintenance': icon = '🛠️'; break;
+            case 'announcement': icon = '📢'; break;
+        }
+
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-body">
+                <div class="toast-title">${notif.title}</div>
+                <div class="toast-msg">${notif.message.substring(0, 80)}${notif.message.length > 80 ? '...' : ''}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.classList.add('active'), 100);
+
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.classList.remove('active');
+            setTimeout(() => toast.remove(), 400);
+        });
+
+        // Auto remove after 6 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.remove('active');
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 6000);
+    }
+
+    if (notifBtn) {
+        // Initial check
+        checkNotifications();
+        // Poll every 30 seconds
+        setInterval(checkNotifications, 30000);
+
         notifBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             notifDropdown.classList.toggle('active');
             if (notifDropdown.classList.contains('active')) {
                 loadNotifications();
+                
+                // Auto mark all as read instantly
+                fetch(base + 'mark_notification_read.php?all=1')
+                    .then(res => res.json())
+                    .then(() => {
+                        const badge = document.getElementById('notifBadge');
+                        if (badge) {
+                            badge.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            badge.style.opacity = '0';
+                            badge.style.transform = 'scale(0)';
+                            setTimeout(() => badge.remove(), 300);
+                        }
+                    });
             }
         });
-
-        document.addEventListener('click', function() {
-            notifDropdown.classList.remove('active');
-        });
-
-        notifDropdown.addEventListener('click', (e) => e.stopPropagation());
     }
 
     function loadNotifications() {
-        const base = '<?php echo $base; ?>';
         fetch(base + 'get_notifications.php')
             .then(res => res.json())
             .then(data => {
                 if (data.length === 0) {
-                    notifList.innerHTML = '<div class="notif-empty">Aucune notification pour le moment.</div>';
+                    notifList.innerHTML = '<div class="notif-empty"><?php echo __("no_notifications"); ?></div>';
                     return;
                 }
 
                 notifList.innerHTML = data.map(n => `
-                    <div class="notif-item ${n.is_read == 0 ? 'unread' : ''}" onclick="markAsRead(${n.id}, this)">
+                    <div class="notif-item ${n.is_read == 0 ? 'unread' : ''}" onclick="handleNotifClick(${n.id}, '${n.related_link}', this)">
+                        <div class="notif-icon-circle">${n.icon}</div>
                         <div class="notif-content">
-                            <p>${n.message}</p>
+                            <p><strong>${n.title}</strong></p>
+                            <p>${n.message.substring(0, 60)}...</p>
                             <span class="notif-time">${n.time_ago}</span>
                         </div>
                     </div>
@@ -258,99 +303,87 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    window.markAsRead = function(id, element) {
-        const base = '<?php echo $base; ?>';
+    window.handleNotifClick = function(id, link, element) {
         fetch(base + 'mark_notification_read.php?id=' + id)
             .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    element.classList.remove('unread');
-                    updateBadgeCount();
+            .then(() => {
+                element.classList.remove('unread');
+                checkNotifications();
+                if (link && link !== 'null') {
+                    window.location.href = base + link;
                 }
             });
     }
 
-    function updateBadgeCount() {
-        const badge = document.querySelector('.notif-badge');
-        if (badge) {
-            let count = parseInt(badge.textContent);
-            if (count > 1) {
-                badge.textContent = count - 1;
-            } else {
-                badge.remove();
-            }
-        }
-    }
-
     const markAllReadBtn = document.getElementById('markAllRead');
     if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', () => {
-            const base = '<?php echo $base; ?>';
+        markAllReadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             fetch(base + 'mark_notification_read.php?all=1')
                 .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        document.querySelectorAll('.notif-item').forEach(i => i.classList.remove('unread'));
-                        const badge = document.querySelector('.notif-badge');
-                        if (badge) badge.remove();
-                    }
+                .then(() => {
+                    loadNotifications();
+                    checkNotifications();
                 });
         });
     }
 
+    // Profile Dropdown
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', () => {
+        if (profileDropdown) profileDropdown.classList.remove('active');
+        if (notifDropdown) notifDropdown.classList.remove('active');
+    });
+
+    // Theme Switching
     const themeLightBtn = document.getElementById('themeLightBtn');
     const themeDarkBtn = document.getElementById('themeDarkBtn');
-    
     if (themeLightBtn && themeDarkBtn) {
-        const updateThemeUI = (theme) => {
-            if (theme === 'dark') {
-                themeDarkBtn.classList.add('active');
-                themeLightBtn.classList.remove('active');
-            } else {
-                themeLightBtn.classList.add('active');
-                themeDarkBtn.classList.remove('active');
-            }
-        };
-
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        updateThemeUI(currentTheme);
-
         themeLightBtn.addEventListener('click', (e) => {
             e.preventDefault();
             document.documentElement.setAttribute('data-theme', 'light');
             localStorage.setItem('theme', 'light');
-            updateThemeUI('light');
         });
-
         themeDarkBtn.addEventListener('click', (e) => {
             e.preventDefault();
             document.documentElement.setAttribute('data-theme', 'dark');
             localStorage.setItem('theme', 'dark');
-            updateThemeUI('dark');
         });
     }
 
-    if (profileBtn && profileDropdown) {
-        profileDropdown.addEventListener('click', (e) => e.stopPropagation());
-    }
+    // Language Change Animation
+    const langLinks = document.querySelectorAll('.lang-selector a');
+    langLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            document.body.style.transition = 'opacity 0.3s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        });
+    });
 
+    // Mobile Menu
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
-    if (menuToggle && navLinks) {
+    if (menuToggle) {
         menuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             navLinks.classList.toggle('mobile-active');
         });
     }
-
-    document.addEventListener('click', (e) => {
-        if (navLinks && navLinks.classList.contains('mobile-active') && !menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-            navLinks.classList.remove('mobile-active');
-        }
-    });
 });
 </script>
 
-
-
 <main class="main-content">
+

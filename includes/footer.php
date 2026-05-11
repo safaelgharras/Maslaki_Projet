@@ -4,36 +4,36 @@
     <div class="footer-container">
         <div class="footer-brand">
             <div class="logo">Maslaki</div>
-            <p>La plateforme de référence pour l'orientation universitaire au Maroc. Trouvez votre voie vers l'excellence.</p>
+            <p><?php echo __('footer_desc'); ?></p>
             
         </div>
 
         <div class="footer-group">
-            <h4>Navigation</h4>
+            <h4><?php echo __('navigation'); ?></h4>
             <ul>
-                <li><a href="<?php echo $base; ?>index.php">Accueil</a></li>
-                <li><a href="<?php echo $base; ?>views/institutions.php">Établissements</a></li>
-                <li><a href="<?php echo $base; ?>views/ai_form.php">Orientation IA</a></li>
+                <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
+                <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
+                <li><a href="<?php echo $base; ?>views/ai_form.php"><?php echo __('ai_orientation'); ?></a></li>
             </ul>
         </div>
 
         <div class="footer-group">
-            <h4>Ressources</h4>
+            <h4><?php echo __('resources'); ?></h4>
             <ul>
-                <li><a href="#">Guide d'inscription</a></li>
-                <li><a href="#">Dates des concours</a></li>
-                <li><a href="#">Aide & Support</a></li>
+                <li><a href="#"><?php echo __('registration_guide'); ?></a></li>
+                <li><a href="#"><?php echo __('exam_dates'); ?></a></li>
+                <li><a href="#"><?php echo __('help_support'); ?></a></li>
             </ul>
         </div>
 
         <div class="footer-group">
-            <h4>Contact</h4>
+            <h4><?php echo __('contact'); ?></h4>
             <p>📧 contact@maslaki.ma</p>
             <p>📍 Tanger, Maroc</p>
         </div>
     </div>
     <div class="footer-bottom">
-        <p>&copy; <?php echo date('Y'); ?> Maslaki. Propulsé par l'innovation.</p>
+        <p>&copy; <?php echo date('Y'); ?> Maslaki. <?php echo __('powered_by_innovation'); ?></p>
     </div>
 </footer>
 

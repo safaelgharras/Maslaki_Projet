@@ -11,21 +11,23 @@ try {
 } catch (Exception $e) {}
 
 
-$pageTitle = "Accueil";
+require "includes/lang_helper.php";
+
+$pageTitle = __("home");
 require "includes/header.php";
 ?>
 
 <div class="hero">
     <div class="hero-content">
-        <div class="hero-badge">🎓 Plateforme n°1 d'orientation au Maroc</div>
-        <h1 class="text-gradient">Trouvez votre avenir <span class="text-accent">universitaire</span></h1>
-        <p>Explorez les meilleures institutions, découvrez les filières d'excellence et construisez votre parcours professionnel avec l'aide de notre intelligence artificielle.</p>
+        <div class="hero-badge"><?php echo __('hero_badge'); ?></div>
+        <h1 class="text-gradient"><?php echo __('hero_title'); ?></h1>
+        <p><?php echo __('hero_subtitle'); ?></p>
         <div class="hero-buttons">
-            <a href="views/institutions.php" class="btn btn-hero btn-hero-primary">Découvrir les établissements</a>
+            <a href="views/institutions.php" class="btn btn-hero btn-hero-primary"><?php echo __('cta_schools'); ?></a>
             <?php if (!isset($_SESSION['user_id'])): ?>
-                <a href="views/register.php" class="btn btn-hero btn-hero-secondary">Créer mon compte</a>
+                <a href="views/register.php" class="btn btn-hero btn-hero-secondary"><?php echo __('cta_register'); ?></a>
             <?php else: ?>
-                <a href="views/dashboard.php" class="btn btn-hero btn-hero-secondary">Aller au Dashboard</a>
+                <a href="views/dashboard.php" class="btn btn-hero btn-hero-secondary"><?php echo __('cta_dashboard'); ?></a>
             <?php endif; ?>
         </div>
     </div>
@@ -34,32 +36,32 @@ require "includes/header.php";
 
 <div class="stats-section">
     <div class="stats-container">
-        <div class="stat-card">
+        <div class="stat-card stagger-1">
             <div class="stat-icon">🏫</div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $schoolCount; ?>+</div>
-                <div class="stat-label">Établissements</div>
+                <div class="stat-label"><?php echo __('institutions'); ?></div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card stagger-2">
             <div class="stat-icon">📍</div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $cityCount; ?></div>
-                <div class="stat-label">Villes couvertes</div>
+                <div class="stat-label"><?php echo __('cities_covered'); ?></div>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card stagger-3">
             <div class="stat-icon">📚</div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $typeCount; ?></div>
-                <div class="stat-label">Types de formations</div>
+                <div class="stat-label"><?php echo __('formation_types'); ?></div>
             </div>
         </div>
     </div>
 </div>
 
 <section class="popular-section">
-    <h2 class="section-title">Établissements populaires</h2>
+    <h2 class="section-title"><?php echo __('popular_schools'); ?></h2>
     <div class="cards-grid">
         <?php
         // Check if is_popular column exists to avoid fatal error
@@ -79,19 +81,19 @@ require "includes/header.php";
         }
 
         if (empty($popular)): ?>
-            <p style="text-align:center; color:var(--text-muted); width:100%;">Aucun établissement disponible pour le moment.</p>
+            <p style="text-align:center; color:var(--text-muted); width:100%;"><?php echo __('no_schools'); ?></p>
         <?php else:
             foreach ($popular as $school):
         ?>
-        <div class="card">
+        <div class="card hover-lift">
             <img src="assets/images/institutions/<?php echo $school['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo $school['name']; ?>">
             <div class="card-body">
                 <div class="card-tag"><?php echo $school['type']; ?></div>
                 <h3><?php echo $school['name']; ?></h3>
                 <p class="school-location">📍 <?php echo $school['city'] ?? 'Maroc'; ?></p>
                 <div class="card-footer">
-                    <span class="seuil">Seuil: <strong><?php echo $school['seuil'] ?? '--'; ?></strong></span>
-                    <a href="views/institution_detail.php?id=<?php echo $school['id']; ?>" class="btn-link">Voir détails →</a>
+                    <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $school['seuil'] ?? '--'; ?></strong></span>
+                    <a href="views/institution_detail.php?id=<?php echo $school['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>
                 </div>
             </div>
         </div>
@@ -102,4 +104,4 @@ require "includes/header.php";
 
 
 
-<?php require "includes/footer.php"; ?>
+<?php require "includes/footer.php"; ?>

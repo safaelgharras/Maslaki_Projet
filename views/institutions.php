@@ -18,6 +18,7 @@ try {
 $types = [];
 try {
     $types = $pdo->query("SELECT DISTINCT type FROM institutions WHERE type IS NOT NULL ORDER BY type")->fetchAll(PDO::FETCH_COLUMN);
+    $bac_types = $pdo->query("SELECT * FROM bac_types ORDER BY nom ASC")->fetchAll();
 } catch (Exception $e) {}
 
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -32,6 +33,10 @@ try {
     $sql .= " ORDER BY name ASC";
 }
 $institutions = $pdo->query($sql)->fetchAll();
+foreach ($institutions as &$inst) {
+    $inst['name'] = getLocalizedDbField($inst, 'name');
+    $inst['description'] = getLocalizedDbField($inst, 'description');
+}
 
 
 // Get saved IDs
@@ -101,8 +106,8 @@ function translateType($type) {
         <div class="migration-alert" style="grid-column: 1/-1; background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
             <span>⚠️</span>
             <div>
-                <strong>Mise à jour requise :</strong> De nouvelles fonctionnalités ont été ajoutées. 
-                <a href="../migrate.php" style="text-decoration: underline; font-weight: 700;">Cliquez ici pour mettre à jour votre base de données</a>.
+                <strong><?php echo __('update_required'); ?></strong> 
+                <a href="../migrate.php" style="text-decoration: underline; font-weight: 700;"><?php echo __('click_to_update_db'); ?></a>.
             </div>
         </div>
     <?php endif; ?>
@@ -111,18 +116,18 @@ function translateType($type) {
 
     <aside class="filter-sidebar">
         <div class="sidebar-header">
-            <h3>Filtres</h3>
+            <h3><?php echo __('filters'); ?></h3>
         </div>
 
         <div class="filter-group">
-            <label>Recherche rapide</label>
-            <input type="text" id="searchInput" placeholder="Nom de l'école, filière..." class="search-input">
+            <label><?php echo __('quick_search'); ?></label>
+            <input type="text" id="searchInput" placeholder="<?php echo __('search_placeholder'); ?>" class="search-input">
         </div>
 
         <div class="filter-group">
-            <label>📍 Ville</label>
+            <label>📍 <?php echo __('city'); ?></label>
             <select id="filterCity" class="filter-select">
-                <option value="">Toutes les villes</option>
+                <option value=""><?php echo __('all_cities'); ?></option>
                 <?php foreach($villes as $v): ?>
                     <option value="<?php echo $v['id']; ?>"><?php echo htmlspecialchars($v['nom']); ?></option>
                 <?php endforeach; ?>
@@ -130,27 +135,44 @@ function translateType($type) {
         </div>
 
         <div class="filter-group">
-            <label>📚 Catégorie</label>
+            <label>📚 <?php echo __('category'); ?></label>
             <select id="filterCategory" class="filter-select">
-                <option value="">Tous les domaines</option>
+                <option value=""><?php echo __('all_categories'); ?></option>
                 <?php foreach($categories as $c): ?>
                     <option value="<?php echo $c['id']; ?>"><?php echo htmlspecialchars($c['nom']); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
 
+        <div class="filter-group" id="domainGroup" style="display:none;">
+            <label>🔍 <?php echo __('domain'); ?></label>
+            <select id="filterDomain" class="filter-select">
+                <option value=""><?php echo __('all_categories'); ?></option>
+            </select>
+        </div>
+
         <div class="filter-group">
-            <label>🏢 Type</label>
+            <label>🎓 <?php echo __('bac_type'); ?></label>
+            <select id="filterBac" class="filter-select">
+                <option value=""><?php echo __('all_bac_types'); ?></option>
+                <?php foreach($bac_types as $bt): ?>
+                    <option value="<?php echo $bt['id']; ?>"><?php echo htmlspecialchars($bt['nom']); ?> (<?php echo $bt['code']; ?>)</option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>🏢 <?php echo __('type'); ?></label>
             <select id="filterType" class="filter-select">
-                <option value="">Public & Privé</option>
+                <option value=""><?php echo __('all_types'); ?></option>
                 <?php foreach($types as $t): ?>
-                    <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars(translateType($t)); ?></option>
+                    <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars(__('type_' . strtolower($t))); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
 
         <button id="resetFilters" class="btn btn-outline btn-full" style="margin-top: 20px; border-color: var(--border-color); color: var(--text-muted);">
-            Réinitialiser les filtres
+            <?php echo __('reset_filters'); ?>
         </button>
     </aside>
 
@@ -160,27 +182,27 @@ function translateType($type) {
         <div class="results-header" style="display: block; margin-bottom: 30px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                 <div>
-                    <h1 class="page-title" style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;">Découvrir les établissements</h1>
+                    <h1 class="page-title" style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;"><?php echo __('find_school'); ?></h1>
                     <div style="width: 60px; height: 3px; background: var(--orange); margin-top: 8px; margin-bottom: 8px;"></div>
-                    <p id="resultsCount" class="results-count" style="margin-bottom: 0;"><?php echo count($institutions); ?> établissements trouvés</p>
+                    <p id="resultsCount" class="results-count" style="margin-bottom: 0;"><?php echo count($institutions); ?> <?php echo __('schools_found'); ?></p>
                 </div>
                 <div class="tags-container">
                     <select id="tagSelect" class="filter-select" style="width: auto; min-width: 220px; font-weight: 600;">
-                        <option value="">🏷️ Tous les tags</option>
-                        <optgroup label="Secteur">
-                            <option value="type_Public">Public</option>
-                            <option value="type_Private">Privé</option>
+                        <option value="">🏷️ <?php echo __('all_tags'); ?></option>
+                        <optgroup label="<?php echo __('sector'); ?>">
+                            <option value="type_Public"><?php echo __('type_public'); ?></option>
+                            <option value="type_Private"><?php echo __('type_private'); ?></option>
                         </optgroup>
-                        <optgroup label="Types d'Établissements">
-                            <option value="type_University">Université</option>
-                            <option value="type_Preparatory">Classes Prépa</option>
-                            <option value="type_Engineering">Ingénierie</option>
-                            <option value="type_Business">Commerce</option>
-                            <option value="type_Science">Sciences</option>
-                            <option value="type_Technical">Technique</option>
-                            <option value="type_Education">Éducation</option>
+                        <optgroup label="<?php echo __('institution_types'); ?>">
+                            <option value="type_University"><?php echo __('type_university'); ?></option>
+                            <option value="type_Preparatory"><?php echo __('type_preparatory'); ?></option>
+                            <option value="type_Engineering"><?php echo __('type_engineering'); ?></option>
+                            <option value="type_Business"><?php echo __('type_business'); ?></option>
+                            <option value="type_Science"><?php echo __('type_science'); ?></option>
+                            <option value="type_Technical"><?php echo __('type_technical'); ?></option>
+                            <option value="type_Education"><?php echo __('type_education'); ?></option>
                         </optgroup>
-                        <optgroup label="Domaines & Filières">
+                        <optgroup label="<?php echo __('domains_streams'); ?>">
                             <option value="search_Informatique">Informatique</option>
                             <option value="search_Finance">Finance</option>
                             <option value="search_Marketing">Marketing</option>
@@ -203,19 +225,19 @@ function translateType($type) {
                 <div class="card">
                     <img src="<?php echo htmlspecialchars($imagePath); ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
                     <div class="card-body">
-                        <div class="badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></div>
+                        <div class="badge"><?php echo htmlspecialchars(__('type_' . strtolower($inst['type']))); ?></div>
                         <h3><?php echo htmlspecialchars($inst['name']); ?></h3>
                         <p class="school-location">📍 <?php echo htmlspecialchars($inst['city'] ?? 'Maroc'); ?></p>
                         
                         <div class="card-info-row">
-                            <span class="info-item">🎓 <?php echo htmlspecialchars($inst['diplome'] ?? 'Diplôme'); ?></span>
+                            <span class="info-item">🎓 <?php echo htmlspecialchars($inst['diplome'] ?? __('diploma')); ?></span>
                             <span class="info-item">⏳ <?php echo htmlspecialchars($inst['duree_etudes'] ?? '--'); ?></span>
                         </div>
 
                         <div class="card-footer">
-                            <span class="seuil">Seuil: <strong><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?></strong></span>
+                            <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?></strong></span>
                             <div class="card-actions">
-                                <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn-link">Détails →</a>
+                                <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>
                                 <?php if ($isLoggedIn): ?>
                                     <button class="btn-icon-save <?php echo in_array($inst['id'], $savedIds) ? 'active' : ''; ?>" 
                                             onclick="toggleSave(<?php echo $inst['id']; ?>, this)">
@@ -308,9 +330,29 @@ function translateType($type) {
 </style>
 
 <script>
+const langTranslations = {
+    schools_found: <?php echo json_encode(__('schools_found')); ?>,
+    no_institutions_criteria: <?php echo json_encode(__('no_institutions_criteria')); ?>,
+    diploma: <?php echo json_encode(__('diploma')); ?>,
+    seuil: <?php echo json_encode(__('seuil')); ?>,
+    details_arrow: <?php echo json_encode(__('details_arrow')); ?>,
+    type_university: <?php echo json_encode(__('type_university')); ?>,
+    type_preparatory: <?php echo json_encode(__('type_preparatory')); ?>,
+    type_engineering: <?php echo json_encode(__('type_engineering')); ?>,
+    type_business: <?php echo json_encode(__('type_business')); ?>,
+    type_science: <?php echo json_encode(__('type_science')); ?>,
+    type_technical: <?php echo json_encode(__('type_technical')); ?>,
+    type_education: <?php echo json_encode(__('type_education')); ?>,
+    type_private: <?php echo json_encode(__('type_private')); ?>,
+    type_public: <?php echo json_encode(__('type_public')); ?>
+};
+
 const searchInput = document.getElementById('searchInput');
 const filterCity = document.getElementById('filterCity');
 const filterCategory = document.getElementById('filterCategory');
+const filterDomain = document.getElementById('filterDomain');
+const domainGroup = document.getElementById('domainGroup');
+const filterBac = document.getElementById('filterBac');
 const filterType = document.getElementById('filterType');
 const resultsGrid = document.getElementById('resultsGrid');
 const resultsCount = document.getElementById('resultsCount');
@@ -338,33 +380,36 @@ function doSearch() {
     if (searchVal.trim()) params.set('search', searchVal.trim());
     if (filterCity.value) params.set('city_id', filterCity.value);
     if (filterCategory.value) params.set('cat_id', filterCategory.value);
+    if (filterDomain.value) params.set('domain_id', filterDomain.value);
+    if (filterBac.value) params.set('bac_id', filterBac.value);
     if (filterType.value && !params.has('type')) params.set('type', filterType.value);
 
     fetch('../search_ajax.php?' + params.toString())
         .then(res => res.json())
         .then(data => {
-            resultsCount.textContent = data.length + ' établissements trouvés';
+            resultsCount.textContent = data.length + ' ' + langTranslations.schools_found;
             renderResults(data);
         });
 }
 
 function translateType(type) {
     const map = {
-        'Engineering': 'Ingénierie',
-        'Business': 'Commerce',
-        'Science': 'Sciences',
-        'Technical': 'Technique',
-        'Preparatory': 'Classes Prépa',
-        'Private': 'Privé',
-        'Education': 'Éducation',
-        'University': 'Université'
+        'Engineering': langTranslations.type_engineering,
+        'Business': langTranslations.type_business,
+        'Science': langTranslations.type_science,
+        'Technical': langTranslations.type_technical,
+        'Preparatory': langTranslations.type_preparatory,
+        'Private': langTranslations.type_private,
+        'Public': langTranslations.type_public,
+        'Education': langTranslations.type_education,
+        'University': langTranslations.type_university
     };
     return map[type] || type;
 }
 
 function renderResults(data) {
     if (data.length === 0) {
-        resultsGrid.innerHTML = '<div class="empty-state">Aucun établissement ne correspond à vos critères.</div>';
+        resultsGrid.innerHTML = `<div class="empty-state">${langTranslations.no_institutions_criteria}</div>`;
         return;
     }
 
@@ -379,13 +424,13 @@ function renderResults(data) {
                     <h3>${inst.name}</h3>
                     <p class="school-location">📍 ${inst.city || 'Maroc'}</p>
                     <div class="card-info-row">
-                        <span>🎓 ${inst.diplome || 'Diplôme'}</span>
+                        <span>🎓 ${inst.diplome || langTranslations.diploma}</span>
                         <span>⏳ ${inst.duree_etudes || '--'}</span>
                     </div>
                     <div class="card-footer">
-                        <span class="seuil">Seuil: <strong>${inst.seuil || inst.min_average || '--'}</strong></span>
+                        <span class="seuil">${langTranslations.seuil}: <strong>${inst.seuil || inst.min_average || '--'}</strong></span>
                         <div class="card-actions">
-                            <a href="institution_detail.php?id=${inst.id}" class="btn-link">Détails →</a>
+                            <a href="institution_detail.php?id=${inst.id}" class="btn-link">${langTranslations.details_arrow}</a>
                             ${isLoggedIn ? `
                                 <button class="btn-icon-save ${isSaved ? 'active' : ''}" 
                                         onclick="toggleSave(${inst.id}, this)">
@@ -458,7 +503,11 @@ function resolveCardImage(inst) {
 }
 
 function toggleSave(id, btn) {
-    fetch(`../save_school.php?id=${id}`)
+    fetch(`../save_school.php?id=${id}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
@@ -479,15 +528,58 @@ searchInput.addEventListener('input', () => {
     debounceTimer = setTimeout(doSearch, 300);
 });
 
-[filterCity, filterCategory, filterType, tagSelect].forEach(el => {
+[filterCity, filterCategory, filterDomain, filterBac, filterType, tagSelect].forEach(el => {
     if (el) el.addEventListener('change', doSearch);
 });
+
+filterCategory.addEventListener('change', function() {
+    const catId = this.value;
+    if (catId) {
+        fetch('../get_domains.php?cat_id=' + catId)
+            .then(res => res.json())
+            .then(data => {
+                filterDomain.innerHTML = '<option value="">' + <?php echo json_encode(__('all_categories')); ?> + '</option>';
+                data.forEach(d => {
+                    filterDomain.innerHTML += `<option value="${d.id}">${d.nom}</option>`;
+                });
+                domainGroup.style.display = 'block';
+            });
+    } else {
+        domainGroup.style.display = 'none';
+        filterDomain.value = '';
+    }
+});
+
+// Initialize from URL
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('cat_id')) {
+    filterCategory.value = urlParams.get('cat_id');
+    // Trigger category change to load domains
+    const event = new Event('change');
+    filterCategory.dispatchEvent(event);
+    
+    // If domain_id is also present, we need to wait for domains to load
+    if (urlParams.has('domain_id')) {
+        const domainId = urlParams.get('domain_id');
+        setTimeout(() => {
+            filterDomain.value = domainId;
+            doSearch();
+        }, 500);
+    } else {
+        doSearch();
+    }
+} else {
+    doSearch();
+}
 
 if (resetBtn) {
     resetBtn.addEventListener('click', () => {
         searchInput.value = '';
         filterCity.value = '';
         filterCategory.value = '';
+        filterDomain.value = '';
+        domainGroup.style.display = 'none';
+        filterBac.value = '';
         filterType.value = '';
         if (tagSelect) tagSelect.value = '';
         

@@ -21,6 +21,12 @@
 {"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H4","location":"remove_school.php:77","message":"Delete query executed","data":{"studentId":5,"institutionId":2,"rowCount":1},"timestamp":1777556331600}
 {"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H3","location":"remove_school.php:10","message":"Delete endpoint response path","data":{"isAjax":true,"status":"success","message":"Ecole supprimee avec succes","redirectParam":"success"},"timestamp":1777556331601}
 {"sessionId":"3cb009","runId":"pre-fix-3","hypothesisId":"H8","location":"views\/saved_schools.php:24","message":"Saved schools page rendered","data":{"studentId":5,"schoolsCount":0},"timestamp":1777556331641}
+<<<<<<< HEAD
 {"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H1-H2","location":"remove_school.php:6","message":"Delete endpoint entry","data":{"method":"GET","isAjax":false,"hasSessionUser":true,"rawPostId":null,"rawGetId":"24"},"timestamp":1777568100206}
 {"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H4","location":"remove_school.php:77","message":"Delete query executed","data":{"studentId":6,"institutionId":24,"rowCount":1},"timestamp":1777568100214}
 {"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H3","location":"remove_school.php:10","message":"Delete endpoint response path","data":{"isAjax":false,"status":"success","message":"Ecole supprimee avec succes","redirectParam":"success"},"timestamp":1777568100214}
+=======
+{"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H1-H2","location":"remove_school.php:6","message":"Delete endpoint entry","data":{"method":"GET","isAjax":false,"hasSessionUser":true,"rawPostId":null,"rawGetId":"8"},"timestamp":1777650152698}
+{"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H4","location":"remove_school.php:77","message":"Delete query executed","data":{"studentId":4,"institutionId":8,"rowCount":1},"timestamp":1777650152712}
+{"sessionId":"3cb009","runId":"pre-fix","hypothesisId":"H3","location":"remove_school.php:10","message":"Delete endpoint response path","data":{"isAjax":false,"status":"success","message":"Ecole supprimee avec succes","redirectParam":"success"},"timestamp":1777650152713}
+>>>>>>> 728ca5ac178514656e00b6426601acb5925ec23e

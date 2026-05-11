@@ -1,5 +1,6 @@
 <?php
-$pageTitle = "Mon Espace";
+require_once "../includes/lang_helper.php";
+$pageTitle = __("profile");
 require "../includes/header.php";
 require "../config/DataBase.php";
 
@@ -38,18 +39,18 @@ try {
 <div class="dashboard-container">
     <header class="dashboard-banner">
         <div class="banner-content">
-            <span class="welcome-tag">👋 Bienvenue sur votre espace</span>
-            <h1>Bonjour, <?php echo htmlspecialchars($_SESSION["user_name"]); ?></h1>
-            <p>Prêt à construire votre avenir ? Voici un aperçu de votre progression et des opportunités recommandées pour vous.</p>
+            <span class="welcome-tag"><?php echo __('dash_welcome'); ?></span>
+            <h1><?php echo __('dash_greeting'); ?>, <?php echo htmlspecialchars($_SESSION["user_name"]); ?></h1>
+            <p><?php echo __('dash_subtitle'); ?></p>
         </div>
         <div class="banner-stats">
             <div class="b-stat">
                 <strong><?php echo $savedNum; ?></strong>
-                <span>Écoles suivies</span>
+                <span><?php echo __('dash_schools_followed'); ?></span>
             </div>
             <div class="b-stat">
                 <strong>92%</strong>
-                <span>Profil complété</span>
+                <span><?php echo __('dash_profile_completed'); ?></span>
             </div>
         </div>
     </header>
@@ -57,14 +58,14 @@ try {
     <div class="dashboard-grid">
         <section class="dash-main">
             <div class="section-header">
-                <h2>Raccourcis rapides</h2>
+                <h2><?php echo __('dash_quick_links'); ?></h2>
             </div>
             <div class="quick-links">
                 <a href="institutions.php" class="quick-card">
                     <div class="q-icon">🏫</div>
                     <div class="q-info">
-                        <h3>Établissements</h3>
-                        <p>Explorez <?php echo $totalSchools; ?> écoles</p>
+                        <h3><?php echo __('institutions'); ?></h3>
+                        <p><?php echo sprintf(__('explore_n_schools'), $totalSchools); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
@@ -72,8 +73,8 @@ try {
                 <a href="saved_schools.php" class="quick-card">
                     <div class="q-icon">⭐</div>
                     <div class="q-info">
-                        <h3>Ma Liste</h3>
-                        <p><?php echo $savedNum; ?> écoles enregistrées</p>
+                        <h3><?php echo __('dash_my_list'); ?></h3>
+                        <p><?php echo $savedNum; ?> <?php echo __('dash_list_subtitle'); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
@@ -81,8 +82,8 @@ try {
                 <a href="ai_form.php" class="quick-card q-primary">
                     <div class="q-icon">🤖</div>
                     <div class="q-info">
-                        <h3>Conseiller IA</h3>
-                        <p>Orientation personnalisée</p>
+                        <h3><?php echo __('ai_orientation'); ?></h3>
+                        <p><?php echo __('dash_orientation_subtitle'); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
@@ -90,8 +91,8 @@ try {
                 <a href="contests.php" class="quick-card">
                     <div class="q-icon">🎓</div>
                     <div class="q-info">
-                        <h3>Concours</h3>
-                        <p>Calendrier & Inscriptions</p>
+                        <h3><?php echo __('dash_contests_subtitle'); ?></h3>
+                        <p><?php echo __('dash_contests_subtitle'); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
@@ -99,7 +100,7 @@ try {
             
             <div class="contests-section" style="margin-bottom: 40px;">
                 <div class="section-header">
-                    <h2>🔥 Concours Importants</h2>
+                    <h2><?php echo __('dash_important_contests'); ?></h2>
                 </div>
                 <div class="contest-grid">
                     <?php
@@ -108,18 +109,19 @@ try {
                         $featuredContests = $contestStmt->fetchAll();
                         
                         foreach($featuredContests as $c): 
-                            $statusLabel = $c['status'] == 'open' ? 'Ouvert' : ($c['status'] == 'soon' ? 'Bientôt' : 'Fermé');
+                            $statusKey = 'status_' . $c['status'];
+                            $statusLabel = __($statusKey);
                         ?>
                             <div class="contest-card">
                                 <span class="contest-status status-<?php echo $c['status']; ?>"><?php echo $statusLabel; ?></span>
                                 <h4><?php echo htmlspecialchars($c['title']); ?></h4>
                                 <div class="contest-details">
                                     <span class="contest-info">🏫 <?php echo htmlspecialchars($c['institution_name']); ?></span>
-                                    <span class="contest-info">📅 Exam: <?php echo date('d M Y', strtotime($c['exam_date'])); ?></span>
-                                    <span class="contest-info">⏳ Limite: <?php echo date('d M Y', strtotime($c['registration_deadline'])); ?></span>
+                                    <span class="contest-info">📅 <?php echo __('exam_label'); ?>: <?php echo date('d M Y', strtotime($c['exam_date'])); ?></span>
+                                    <span class="contest-info">⏳ <?php echo __('deadline_label'); ?>: <?php echo date('d M Y', strtotime($c['registration_deadline'])); ?></span>
                                 </div>
                                 <div class="contest-footer">
-                                    <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn-details">Voir détails →</a>
+                                    <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn-details"><?php echo __('details_arrow'); ?></a>
                                 </div>
                             </div>
                         <?php endforeach;
@@ -131,7 +133,7 @@ try {
             <?php if (count($upcomingDeadlines) > 0): ?>
             <div class="deadline-section">
                 <div class="section-header">
-                    <h2>📅 Dates limites cruciales</h2>
+                    <h2><?php echo __('dash_crucial_deadlines'); ?></h2>
                 </div>
                 <div class="deadline-grid">
                     <?php foreach($upcomingDeadlines as $d): ?>
@@ -153,32 +155,33 @@ try {
 
         <aside class="dash-sidebar">
             <div class="sidebar-card promo-card">
-                <h3>Voulez-vous plus d'aide ?</h3>
-                <p>Nos experts en orientation sont là pour vous accompagner dans chaque étape de votre inscription.</p>
-                <a href="appointments.php" class="btn btn-white btn-full">Prendre RDV</a>
+                <h3><?php echo __('dash_need_more_help'); ?></h3>
+                <p><?php echo __('dash_help_subtitle'); ?></p>
+                <a href="appointments.php" class="btn btn-white btn-full"><?php echo __('dash_book_appointment'); ?></a>
             </div>
 
             <div class="sidebar-card">
-                <h3>Notifications</h3>
+                <h3><?php echo __('notifications'); ?></h3>
                 <div class="notif-list">
                     <?php
                     try {
-                        $dashNotifs = $pdo->prepare("SELECT * FROM notifications WHERE student_id = ? ORDER BY created_at DESC LIMIT 5");
+                        // Using correct column name from typical schema or current query
+                        $dashNotifs = $pdo->prepare("SELECT * FROM notifications WHERE (target_user_id = ? OR is_global = 1) ORDER BY created_at DESC LIMIT 5");
                         $dashNotifs->execute([$userId]);
                         $notifs = $dashNotifs->fetchAll();
                         
                         if (count($notifs) > 0):
                             foreach($notifs as $n): ?>
-                                <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread-dot'; ?>">
+                                <div class="notif-item">
                                     <span class="n-dot"></span>
                                     <p><?php echo htmlspecialchars($n['message']); ?></p>
                                 </div>
                             <?php endforeach;
                         else: ?>
-                            <p class="text-muted">Aucune notification.</p>
+                            <p class="text-muted"><?php echo __('no_notifications'); ?></p>
                         <?php endif;
                     } catch (Exception $e) {
-                        echo "<p>Erreur de chargement.</p>";
+                        echo "<p>".__('loading')."</p>";
                     }
                     ?>
                 </div>
