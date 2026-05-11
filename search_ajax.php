@@ -9,7 +9,9 @@ $filiereId = isset($_GET["filiere_id"]) ? trim($_GET["filiere_id"]) : "";
 $bacId = isset($_GET["bac_id"]) ? trim($_GET["bac_id"]) : "";
 $type = isset($_GET["type"]) ? trim($_GET["type"]) : "";
 
-$sql = "SELECT i.*, v.nom as city_name, GROUP_CONCAT(DISTINCT f.nom SEPARATOR ', ') as filieres_list 
+$sql = "SELECT i.*, v.nom as city_name, v.nom_ar as city_name_ar, 
+               GROUP_CONCAT(DISTINCT f.nom SEPARATOR ', ') as filieres_list,
+               GROUP_CONCAT(DISTINCT f.nom_ar SEPARATOR ', ') as filieres_list_ar
         FROM institutions i 
         LEFT JOIN villes v ON i.ville_id = v.id
         LEFT JOIN institution_filieres ifil ON i.id = ifil.institution_id
@@ -71,10 +73,21 @@ require_once "includes/lang_helper.php";
 foreach ($institutions as &$inst) {
     $inst['name'] = getLocalizedDbField($inst, 'name');
     $inst['description'] = getLocalizedDbField($inst, 'description');
-    if (empty($inst['city']) && !empty($inst['city_name'])) {
-        $inst['city'] = $inst['city_name'];
-    }
+    
+    // City localization
+    $cityData = [
+        'city' => $inst['city'] ?? $inst['city_name'] ?? '',
+        'city_ar' => $inst['city_ar'] ?? $inst['city_name_ar'] ?? ''
+    ];
+    $inst['city'] = getLocalizedDbField($cityData, 'city');
+    
+    // Filieres list localization
+    $inst['filieres_list'] = getLocalizedDbField([
+        'filieres_list' => $inst['filieres_list'],
+        'filieres_list_ar' => $inst['filieres_list_ar']
+    ], 'filieres_list');
 }
+unset($inst);
 
 
 header("Content-Type: application/json");

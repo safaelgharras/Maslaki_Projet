@@ -1,12 +1,18 @@
 <?php
-session_start();
+require_once "../includes/lang_helper.php";
+$pageTitle = __("explore_orientation");
+require "../includes/header.php";
 require "../config/DataBase.php";
 
-$pageTitle = __("explore_orientation");
-$base = "../";
-require "../includes/header.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll();
+foreach ($categories as &$cat) {
+    $cat['nom'] = getLocalizedDbField($cat, 'nom');
+}
+unset($cat);
 ?>
 
 <div class="container" style="margin-top: 40px;">
@@ -17,7 +23,7 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
         <?php foreach($categories as $index => $cat): ?>
             <div class="category-card stagger-<?php echo ($index % 5) + 1; ?>" onclick="showDomains(<?php echo $cat['id']; ?>, '<?php echo addslashes($cat['nom']); ?>')">
                 <div class="card-content">
-                    <div class="category-icon"><?php echo getCategoryEmoji($cat['nom']); ?></div>
+                    <div class="category-icon"><?php echo getCategoryEmoji($cat['id']); ?></div>
                     <h3><?php echo htmlspecialchars($cat['nom']); ?></h3>
                     <p><?php echo __('discover_streams_schools_domain'); ?></p>
                     <span class="explore-btn"><?php echo __('explore'); ?> <?php echo isRTL() ? '←' : '→'; ?></span>
@@ -123,6 +129,11 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
     margin-bottom: 30px;
 }
 
+.modal-header h2 {
+    color: white;
+    font-weight: 800;
+}
+
 .close-modal {
     background: none;
     border: none;
@@ -135,24 +146,28 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll(
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 15px;
-}
-
-.domain-item {
-    background: rgba(var(--primary-rgb), 0.05);
-    padding: 15px 20px;
-    border-radius: 12px;
-    color: var(--text-main);
-    text-decoration: none;
-    transition: background 0.2s;
-}
-
-.domain-item:hover {
-    background: var(--primary);
     color: white;
 }
 
+.domain-item {
+    padding: 10px 0;
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    display: block;
+}
+
+.domain-item:hover {
+    color: #1e3a8a; /* Navy Blue */
+    transform: translateX(5px);
+}
+
 [data-theme="dark"] .category-card { background: #161e31; }
-[data-theme="dark"] .modal-content { background: #1a233a; }
+[data-theme="dark"] .modal-content { background: #1a233a; color: white; }
+[data-theme="dark"] .modal-header h2 { color: white; }
+[data-theme="dark"] .domain-item { color: white; }
+[data-theme="dark"] .domain-item:hover { color: #3b82f6; } /* Lighter blue for dark mode hover */
 </style>
 
 <script>
@@ -189,20 +204,19 @@ window.onclick = function(event) {
 </script>
 
 <?php
-function getCategoryEmoji($name) {
+function getCategoryEmoji($id) {
     $emojis = [
-        "Sciences Exactes & Technologies" => "💻",
-        "Ingénierie & Industrie" => "⚙️",
-        "Santé & Sciences de la Vie" => "🩺",
-        "Agriculture & Environnement" => "🌿",
-        "Business, Gestion & Finance" => "📊",
-        "Droit, Politique & Société" => "⚖️",
-        "Arts, Design & Médias" => "🎨",
-        "Services, Tourisme & Transport" => "✈️",
-        "Éducation & Sciences Humaines" => "📚",
-        "Formation Professionnelle & Métiers" => "🛠️"
+        1 => "🔬", // Sciences Exactes
+        2 => "⚙️", // Ingénierie
+        3 => "🩺", // Santé
+        4 => "🌿", // Agriculture
+        5 => "📊", // Business
+        6 => "⚖️", // Droit
+        7 => "🎨", // Arts
+        8 => "✈️", // Services
+        9 => "📖", // Éducation
     ];
-    return $emojis[$name] ?? "🎓";
+    return $emojis[$id] ?? "🎓";
 }
 
 require "../includes/footer.php";

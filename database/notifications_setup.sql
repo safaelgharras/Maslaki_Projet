@@ -1,13 +1,15 @@
 -- Notifications System Setup
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
 -- 1. Add role to students if not exists
 ALTER TABLE `students` ADD COLUMN IF NOT EXISTS `role` VARCHAR(20) DEFAULT 'student';
 
 -- 2. Create Notifications table
-CREATE TABLE IF NOT EXISTS `notifications` (
+DROP TABLE IF EXISTS `notifications`;
+CREATE TABLE `notifications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `message` text NOT NULL,
@@ -39,4 +41,5 @@ INSERT INTO `notifications` (`title`, `message`, `type`, `related_link`, `is_glo
 ('Bienvenue sur Maslaki !', 'Découvrez notre nouveau système d\'orientation personnalisé.', 'system', 'views/orientation_explore.php', 1),
 ('Nouvelle École : ENSA Tanger', 'L\'ENSA Tanger a été ajoutée à la plateforme avec ses nouveaux seuils.', 'school', 'views/institution_detail.php?id=61', 1);
 
+SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;

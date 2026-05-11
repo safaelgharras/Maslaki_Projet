@@ -1,4 +1,5 @@
 <?php
+require_once "../includes/lang_helper.php";
 $pageTitle = __("institution_details");
 require "../includes/header.php";
 require "../config/DataBase.php";
@@ -17,7 +18,7 @@ $hasVilles = false;
 try {
     $pdo->query("SELECT 1 FROM villes LIMIT 1");
     $hasVilles = true;
-    $sql .= ", v.nom as ville_nom FROM institutions i LEFT JOIN villes v ON i.ville_id = v.id";
+    $sql .= ", v.nom as ville_nom, v.nom_ar as ville_nom_ar FROM institutions i LEFT JOIN villes v ON i.ville_id = v.id";
 } catch (Exception $e) {
     $sql .= " FROM institutions i";
 }
@@ -32,8 +33,16 @@ if (!$inst) {
     exit();
 }
 
+// Localize main object
+$inst['name'] = getLocalizedDbField($inst, 'name');
+$inst['city'] = getLocalizedDbField($inst, 'city');
+$inst['description'] = getLocalizedDbField($inst, 'description');
+$inst['requirements'] = getLocalizedDbField($inst, 'requirements');
+$inst['diplome'] = getLocalizedDbField($inst, 'diplome');
+$inst['ville_nom'] = isset($inst['ville_nom_ar']) ? getLocalizedDbField($inst, 'ville_nom') : ($inst['ville_nom'] ?? '');
+
 // Get filieres with their domains
-$filiereSql = "SELECT f.*, d.nom as domain_nom 
+$filiereSql = "SELECT f.*, d.nom as domain_nom, d.nom_ar as domain_nom_ar
                FROM filieres f 
                JOIN institution_filieres ifil ON f.id = ifil.filiere_id 
                LEFT JOIN domains d ON f.domain_id = d.id
@@ -42,14 +51,25 @@ $filiereStmt = $pdo->prepare($filiereSql);
 $filiereStmt->execute([$id]);
 $filieres = $filiereStmt->fetchAll();
 
+foreach ($filieres as &$f) {
+    $f['nom'] = getLocalizedDbField($f, 'nom');
+    $f['description'] = getLocalizedDbField($f, 'description');
+    $f['domain_nom'] = getLocalizedDbField(['domain_nom' => $f['domain_nom'], 'domain_nom_ar' => $f['domain_nom_ar'] ?? ''], 'domain_nom');
+}
+unset($f);
+
 // Get bac requirements
-$bacSql = "SELECT bt.*, ibt.min_grade 
+$bacSql = "SELECT bt.*, bt.nom_ar, ibt.min_grade 
            FROM bac_types bt 
            JOIN institution_bac_types ibt ON bt.id = ibt.bac_type_id 
            WHERE ibt.institution_id = ?";
 $bacStmt = $pdo->prepare($bacSql);
 $bacStmt->execute([$id]);
 $bac_requirements = $bacStmt->fetchAll();
+
+foreach ($bac_requirements as &$br) {
+    $br['nom'] = getLocalizedDbField($br, 'nom');
+}
 
 // Get gallery images
 $imgSql = "SELECT * FROM institution_images WHERE institution_id = ? ORDER BY is_main DESC";

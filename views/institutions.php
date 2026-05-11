@@ -10,7 +10,16 @@ $migrationNeeded = false;
 
 try {
     $villes = $pdo->query("SELECT * FROM villes ORDER BY nom ASC")->fetchAll();
+    foreach ($villes as &$v) {
+        $v['nom'] = getLocalizedDbField($v, 'nom');
+    }
+    unset($v);
+    
     $categories = $pdo->query("SELECT * FROM categories ORDER BY nom ASC")->fetchAll();
+    foreach ($categories as &$c) {
+        $c['nom'] = getLocalizedDbField($c, 'nom');
+    }
+    unset($c);
 } catch (Exception $e) {
     $migrationNeeded = true;
 }
@@ -36,7 +45,9 @@ $institutions = $pdo->query($sql)->fetchAll();
 foreach ($institutions as &$inst) {
     $inst['name'] = getLocalizedDbField($inst, 'name');
     $inst['description'] = getLocalizedDbField($inst, 'description');
+    $inst['city'] = getLocalizedDbField($inst, 'city');
 }
+unset($inst);
 
 
 // Get saved IDs
@@ -54,6 +65,7 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
         $candidates[] = (string) $dbImage;
     }
 
+    // Special cases
     if ($normalizedName === 'cpge fes' || $normalizedName === 'cpge fez') {
         $candidates[] = 'CPGE Fez.jpg';
     } elseif ($normalizedName === 'emsi casablanca') {
@@ -71,15 +83,15 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
 
     foreach ($candidates as $candidate) {
         $candidate = trim((string) $candidate);
-        if ($candidate === '') {
-            continue;
-        }
+        if ($candidate === '') continue;
 
+        // Check in assets/images/
         if (file_exists(__DIR__ . '/../assets/images/' . $candidate)) {
-            return '../assets/images/' . $candidate;
+            return '../assets/images/' . str_replace(' ', '%20', $candidate);
         }
+        // Check in assets/images/institutions/
         if (file_exists(__DIR__ . '/../assets/images/institutions/' . $candidate)) {
-            return '../assets/images/institutions/' . $candidate;
+            return '../assets/images/institutions/' . str_replace(' ', '%20', $candidate);
         }
     }
 
@@ -87,17 +99,23 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
 }
 
 function translateType($type) {
-    $map = [
-        'Engineering' => 'Ingénierie',
-        'Business' => 'Commerce',
-        'Science' => 'Sciences',
-        'Technical' => 'Technique',
-        'Preparatory' => 'Classes Prépa',
-        'Private' => 'Privé',
-        'Education' => 'Éducation',
-        'University' => 'Université'
-    ];
-    return $map[$type] ?? $type;
+    $key = 'type_' . strtolower($type);
+    $translated = __($key);
+    // If translation not found, fallback to original or hardcoded map
+    if ($translated === $key) {
+        $map = [
+            'Engineering' => 'Ingénierie',
+            'Business' => 'Commerce',
+            'Science' => 'Sciences',
+            'Technical' => 'Technique',
+            'Preparatory' => 'Classes Prépa',
+            'Private' => 'Privé',
+            'Education' => 'Éducation',
+            'University' => 'Université'
+        ];
+        return $map[$type] ?? $type;
+    }
+    return $translated;
 }
 ?>
 
@@ -449,26 +467,32 @@ function resolveCardImage(inst) {
     const name = (inst.name || '').trim();
     const normalizedName = name.toLowerCase();
 
-    const exactNameToImage = {
+    // Map of known images in the institutions/ subfolder
+    const institutionSubfolderImages = {
         'cpge fes': 'CPGE Fez.jpg',
         'cpge fez': 'CPGE Fez.jpg',
+        'cpge kenitra': 'CPGE Kenitra .jpg',
+        'cpge marrakech': 'CPGE Marrakech.WEBP',
+        'cpge oujda': 'CPGE Oujda.PNG',
         'eigsi casablanca': 'EIGSI Casablanca.webp',
         'emi rabat': 'EMI Rabat.webp',
         'emsi casablanca': 'EMSI Casablanca.webp',
+        'emsi rabat': 'EMSI Rabat.PNG',
         'encg agadir': 'ENCG Agadir.webp',
         'encg kenitra': 'ENCG Kenitra.png',
         'encg marrakech': 'ENCG Marrakech.webp',
         'encg oujda': 'ENCG Oujda.webp',
         'encg settat': 'ENCG Settat.webp',
         'ens rabat': 'ENS Rabat.png',
+        'ensa casablanca': 'ENSA Casablanca.png',
         'ensa fes': 'ENSA Fes.png',
         'ensa kenitra': 'ENSA Kenitra.png',
-        'ensa marrakech': 'ENSA Marrakech.webp',
+        'ensa marrakech': 'ENSA Marrakech.png',
         'ensa oujda': 'ENSA Oujda.png',
         'ensa tanger': 'ENSA Tanger.png',
         'enset mohammedia': 'ENSET Mohammedia.webp',
+        'ensias rabat': 'ENSIAS Rabat.png',
         'esca ecole de management': 'ESCA Ecole de Management Casablanca.webp',
-        'esca ecole de management casablanca': 'ESCA Ecole de Management Casablanca.webp',
         'est agadir': 'EST Agadir.png',
         'est casablanca': 'EST Casablanca.png',
         'est fes': 'EST Fes.png',
@@ -480,26 +504,43 @@ function resolveCardImage(inst) {
         'fs errachidia': 'FS Errachidia.png',
         'fs meknes': 'FS Meknes.png',
         'fs oujda': 'FS Oujda.png',
+        'fs rabat': 'FS Rabat.png',
         'fst al hoceima': 'FST Al Hoceima.jpg',
+        'fst casablanca': 'FST Casablanca.png',
         'fst mohammedia': 'FST Mohammedia.png',
-        'fst settat': 'FST Settat.png',
+        'fst settat': 'FST Settat - Hassan 1er.png',
         'fst tanger': 'FST Tanger.png',
         'heci casablanca': 'HECI Casablanca.png',
         'hem casablanca': 'HEM Casablanca.png',
         'iga casablanca': 'IGA Casablanca.png',
+        'inpt rabat': 'INPT Rabat.png',
         'iscae casablanca': 'ISCAE Casablanca.png',
-        'isga marrakech': 'ISGA Marrakech.png'
+        'isga marrakech': 'ISGA Marrakech.png',
+        'ofppt agadir': 'OFPPT Agadir.png',
+        'supmti casablanca': 'SUPMTI Casablanca.png',
+        'université hassan i': 'Université Hassan I Setat.PNG',
+        'université hassan ii': 'Université Hassan II Casablanca.PNG',
+        'université mohammed v': 'Université Mohammed V Rabat.PNG',
+        'université sidi mohamed ben abdellah': 'Université Sidi Mohamed Ben Abdellah Fes.png',
+        'université sultan moulay slimane': 'Université Sultan Moulay Slimane Bni melal.PNG'
     };
 
-    if (exactNameToImage[normalizedName]) {
-        return `../assets/images/${exactNameToImage[normalizedName]}`;
+    let filename = '';
+    let folder = 'institutions/';
+
+    if (institutionSubfolderImages[normalizedName]) {
+        filename = institutionSubfolderImages[normalizedName];
+    } else if (inst.image && inst.image !== 'default_school.jpg') {
+        filename = inst.image;
+        // If the DB image has a path, don't double up
+        if (filename.includes('/')) return `../assets/images/${filename}`;
+    } else {
+        return '../assets/images/default_school.jpg';
     }
 
-    if (inst.image) {
-        return `../assets/images/${inst.image}`;
-    }
-
-    return `../assets/images/${name}.webp`;
+    // URL encode spaces for browser safety
+    const safeFilename = filename.replace(/ /g, '%20');
+    return `../assets/images/${folder}${safeFilename}`;
 }
 
 function toggleSave(id, btn) {
