@@ -291,3 +291,4 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 </style>
 
 <?php require "../includes/footer.php"; ?>
+<?php require "../includes/footer.php"; ?>

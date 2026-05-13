@@ -61,4 +61,15 @@ $schools = $stmt->fetchAll();
 
 <?php endif; ?>
 
+<?php require "../includes/footer.php"; ?>               if (document.querySelectorAll('.card').length === 0) {
+                    location.reload();
+                }
+            }, 300);
+        } else {
+            showToast('Erreur lors de la suppression', 'error');
+        }
+    });
+}
+</script>
+
 <?php require "../includes/footer.php"; ?>
