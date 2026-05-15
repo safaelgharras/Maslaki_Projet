@@ -149,19 +149,32 @@ unset($cat);
     color: white;
 }
 
-.domain-item {
-    padding: 10px 0;
-    color: white;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    display: block;
+.domain-item { 
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px; 
+    background: #f8fafc; 
+    border-radius: 15px; 
+    text-decoration: none; 
+    color: #1e293b; 
+    font-weight: 700; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    border: 1px solid #e2e8f0;
+    margin-bottom: 10px;
 }
-
-.domain-item:hover {
-    color: #1e3a8a; /* Navy Blue */
-    transform: translateX(5px);
+.domain-item:hover { 
+    background: white; 
+    transform: translateY(-3px) translateX(5px); 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+    border-color: #1e3a8a;
+    color: #1e3a8a;
 }
+.item-icon { font-size: 1.2rem; }
+.filiere-link { border-left: 4px solid #f97316; } /* Orange */
+.domain-link { border-left: 4px solid #1e3a8a; } /* Navy */
+[dir="rtl"] .filiere-link, body.rtl .filiere-link { border-left: 1px solid #e2e8f0; border-right: 4px solid #f97316; }
+[dir="rtl"] .domain-link, body.rtl .domain-link { border-left: 1px solid #e2e8f0; border-right: 4px solid #1e3a8a; }
 
 [data-theme="dark"] .category-card { background: #161e31; }
 [data-theme="dark"] .modal-content { background: #1a233a; color: white; }
@@ -184,11 +197,18 @@ function showDomains(catId, catName) {
                 list.innerHTML = `<p>${<?php echo json_encode(__('no_domain_found')); ?>}</p>`;
                 return;
             }
-            list.innerHTML = data.map(d => `
-                <a href="domain_details.php?id=${d.id}" class="domain-item">
-                    ${d.nom}
-                </a>
-            `).join('');
+            list.innerHTML = data.map(item => {
+                const url = item.type === 'domain' 
+                    ? `domain_details.php?id=${item.id}` 
+                    : `filiere_details.php?id=${item.id}`;
+                const icon = item.type === 'domain' ? '🌐' : '📚';
+                return `
+                    <a href="${url}" class="domain-item ${item.type}-link">
+                        <span class="item-icon">${icon}</span>
+                        <span class="item-name">${item.nom}</span>
+                    </a>
+                `;
+            }).join('');
         });
 }
 
@@ -206,15 +226,16 @@ window.onclick = function(event) {
 <?php
 function getCategoryEmoji($id) {
     $emojis = [
-        1 => "🔬", // Sciences Exactes
-        2 => "⚙️", // Ingénierie
-        3 => "🩺", // Santé
-        4 => "🌿", // Agriculture
-        5 => "📊", // Business
-        6 => "⚖️", // Droit
-        7 => "🎨", // Arts
-        8 => "✈️", // Services
-        9 => "📖", // Éducation
+        1 => "🔬", // Sciences
+        2 => "💰", // Économie & Gestion
+        3 => "📚", // Lettres & Langues
+        4 => "🧠", // Sciences Humaines & Sociales
+        5 => "🖥️", // Informatique
+        6 => "🏥", // Santé
+        7 => "⚖️", // Droit & Sciences Politiques
+        8 => "🎨", // Arts & Design
+        9 => "💻", // Technologie & Ingénierie
+        10 => "🏨", // Tourisme & Hôtellerie
     ];
     return $emojis[$id] ?? "🎓";
 }

@@ -1,19 +1,19 @@
 <?php
-$pageTitle = "Tous les Concours";
+$pageTitle = __("all_contests");
 require "../includes/header.php";
 require "../config/DataBase.php";
 
 $isLoggedIn = isset($_SESSION['user_id']);
 
 // Get all contests
-$stmt = $pdo->query("SELECT c.*, i.name as institution_name, i.city, i.image FROM contests c JOIN institutions i ON c.institution_id = i.id ORDER BY c.registration_deadline ASC");
+$stmt = $pdo->query("SELECT c.*, i.name, i.name_ar, i.name_en, i.city, i.city_ar, i.city_en, i.image FROM contests c JOIN institutions i ON c.institution_id = i.id ORDER BY c.registration_deadline ASC");
 $contests = $stmt->fetchAll();
 ?>
 
 <div class="contests-page">
     <div class="page-header">
-        <h1>🎓 Calendrier des Concours</h1>
-        <p>Ne manquez aucune opportunité. Suivez les dates clés des concours nationaux.</p>
+        <h1>🎓 <?php echo __('contests_calendar'); ?></h1>
+        <p><?php echo __('contests_subtitle'); ?></p>
     </div>
 
     <div class="contests-filters">
@@ -22,7 +22,7 @@ $contests = $stmt->fetchAll();
 
     <div class="contests-grid">
         <?php foreach($contests as $c): 
-            $statusLabel = $c['status'] == 'open' ? 'Ouvert' : ($c['status'] == 'soon' ? 'Bientôt' : 'Fermé');
+            $statusLabel = __('status_' . $c['status']);
         ?>
             <div class="contest-card-lg">
                 <div class="contest-img">
@@ -30,27 +30,27 @@ $contests = $stmt->fetchAll();
                 </div>
                 <div class="contest-body">
                     <span class="contest-status status-<?php echo $c['status']; ?>"><?php echo $statusLabel; ?></span>
-                    <h3><?php echo htmlspecialchars($c['title']); ?></h3>
-                    <p class="inst-name">🏫 <?php echo htmlspecialchars($c['institution_name']); ?> — <?php echo htmlspecialchars($c['city']); ?></p>
+                    <h3><?php echo htmlspecialchars(getLocalizedDbField($c, 'title')); ?></h3>
+                    <p class="inst-name">🏫 <?php echo htmlspecialchars(getLocalizedDbField($c, 'name')); ?> — <?php echo htmlspecialchars(getLocalizedDbField($c, 'city')); ?></p>
                     
                     <div class="contest-metrics">
                         <div class="metric">
-                            <span class="m-label">Fin d'inscription</span>
-                            <span class="m-value"><?php echo date('d M Y', strtotime($c['registration_deadline'])); ?></span>
+                            <span class="m-label"><?php echo __('registration_end'); ?></span>
+                            <span class="m-value"><?php echo formatLocalizedDate($c['registration_deadline']); ?></span>
                         </div>
                         <div class="metric">
-                            <span class="m-label">Date du concours</span>
-                            <span class="m-value"><?php echo date('d M Y', strtotime($c['exam_date'])); ?></span>
+                            <span class="m-label"><?php echo __('contest_date'); ?></span>
+                            <span class="m-value"><?php echo formatLocalizedDate($c['exam_date']); ?></span>
                         </div>
                     </div>
 
                     <div class="contest-desc">
-                        <?php echo htmlspecialchars($c['description']); ?>
+                        <?php echo htmlspecialchars(getLocalizedDbField($c, 'description')); ?>
                     </div>
 
                     <div class="contest-actions">
-                        <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn btn-primary">Détails de l'école</a>
-                        <button class="btn btn-outline">Ajouter au calendrier</button>
+                        <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn btn-primary"><?php echo __('school_details'); ?></a>
+                        <button class="btn btn-outline"><?php echo __('add_to_calendar'); ?></button>
                     </div>
                 </div>
             </div>

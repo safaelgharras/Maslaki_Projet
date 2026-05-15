@@ -245,7 +245,7 @@ function translateType($type) {
                     <div class="card-body">
                         <div class="badge"><?php echo htmlspecialchars(__('type_' . strtolower($inst['type']))); ?></div>
                         <h3><?php echo htmlspecialchars($inst['name']); ?></h3>
-                        <p class="school-location">📍 <?php echo htmlspecialchars($inst['city'] ?? 'Maroc'); ?></p>
+                        <p class="school-location">📍 <?php echo htmlspecialchars($inst['city'] ?? __('morocco')); ?></p>
                         
                         <div class="card-info-row">
                             <span class="info-item">🎓 <?php echo htmlspecialchars($inst['diplome'] ?? __('diploma')); ?></span>
@@ -401,6 +401,12 @@ function doSearch() {
     if (filterDomain.value) params.set('domain_id', filterDomain.value);
     if (filterBac.value) params.set('bac_id', filterBac.value);
     if (filterType.value && !params.has('type')) params.set('type', filterType.value);
+
+    // If we came from orientation_explore.php directly to a filiere
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('filiere_id') && !filterDomain.value && !filterCategory.value) {
+        params.set('filiere_id', urlParams.get('filiere_id'));
+    }
 
     fetch('../search_ajax.php?' + params.toString())
         .then(res => res.json())
@@ -609,6 +615,10 @@ if (urlParams.has('cat_id')) {
     } else {
         doSearch();
     }
+} else if (urlParams.has('filiere_id')) {
+    // If we have a filiere_id, we need to pass it to doSearch
+    // We can use a global variable or just rely on the fact that doSearch reads URL params if we modify it
+    doSearch();
 } else {
     doSearch();
 }

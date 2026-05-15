@@ -1564,6 +1564,11 @@ body {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
+.nav-platform-admin {
+    font-weight: 700;
+    color: var(--orange, #f97316) !important;
+}
+
 .card-header-flex {
     display: flex;
     justify-content: space-between;

@@ -56,8 +56,8 @@ try {
 
     foreach ($notifications as &$n) {
         $n['time_ago'] = time_ago($n['created_at']);
-        $n['title'] = __($n['title']);
-        $n['message'] = __($n['message']);
+        $n['title'] = __(getLocalizedDbField($n, 'title'));
+        $n['message'] = __(getLocalizedDbField($n, 'message'));
         // Add icon based on type
         switch($n['type']) {
             case 'system': $n['icon'] = '⚙️'; break;

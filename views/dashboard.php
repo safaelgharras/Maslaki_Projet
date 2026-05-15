@@ -105,7 +105,7 @@ try {
                 <div class="contest-grid">
                     <?php
                     try {
-                        $contestStmt = $pdo->query("SELECT c.*, i.name as institution_name FROM contests c JOIN institutions i ON c.institution_id = i.id WHERE c.is_featured = 1 LIMIT 3");
+                        $contestStmt = $pdo->query("SELECT c.*, i.name, i.name_ar, i.name_en FROM contests c JOIN institutions i ON c.institution_id = i.id WHERE c.is_featured = 1 LIMIT 3");
                         $featuredContests = $contestStmt->fetchAll();
                         
                         foreach($featuredContests as $c): 
@@ -114,11 +114,11 @@ try {
                         ?>
                             <div class="contest-card">
                                 <span class="contest-status status-<?php echo $c['status']; ?>"><?php echo $statusLabel; ?></span>
-                                <h4><?php echo htmlspecialchars($c['title']); ?></h4>
+                                <h4><?php echo htmlspecialchars(getLocalizedDbField($c, 'title')); ?></h4>
                                 <div class="contest-details">
-                                    <span class="contest-info">🏫 <?php echo htmlspecialchars($c['institution_name']); ?></span>
-                                    <span class="contest-info">📅 <?php echo __('exam_label'); ?>: <?php echo date('d M Y', strtotime($c['exam_date'])); ?></span>
-                                    <span class="contest-info">⏳ <?php echo __('deadline_label'); ?>: <?php echo date('d M Y', strtotime($c['registration_deadline'])); ?></span>
+                                    <span class="contest-info">🏫 <?php echo htmlspecialchars(getLocalizedDbField($c, 'name')); ?></span>
+                                    <span class="contest-info">📅 <?php echo __('exam_label'); ?>: <?php echo formatLocalizedDate($c['exam_date']); ?></span>
+                                    <span class="contest-info">⏳ <?php echo __('deadline_label'); ?>: <?php echo formatLocalizedDate($c['registration_deadline']); ?></span>
                                 </div>
                                 <div class="contest-footer">
                                     <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn-details"><?php echo __('details_arrow'); ?></a>
@@ -174,7 +174,7 @@ try {
                             foreach($notifs as $n): ?>
                                 <div class="notif-item">
                                     <span class="n-dot"></span>
-                                    <p><?php echo htmlspecialchars($n['message']); ?></p>
+                                    <p><?php echo htmlspecialchars(__(getLocalizedDbField($n, 'message'))); ?></p>
                                 </div>
                             <?php endforeach;
                         else: ?>

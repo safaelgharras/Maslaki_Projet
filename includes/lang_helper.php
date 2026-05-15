@@ -50,4 +50,24 @@ function getLocalizedDbField($row, $field) {
     }
     return $row[$field] ?? '';
 }
+
+/**
+ * Formats a date string into a localized format (e.g., 22 Juillet 2026 or 22 يوليوز 2026)
+ */
+function formatLocalizedDate($dateStr) {
+    if (!$dateStr || $dateStr === '0000-00-00') return '--';
+    
+    $time = strtotime($dateStr);
+    $day = date('d', $time);
+    $monthNum = date('n', $time);
+    $year = date('Y', $time);
+    
+    $monthName = __('month_' . $monthNum);
+    
+    if (getLang() === 'ar') {
+        return $day . ' ' . $monthName . ' ' . $year;
+    }
+    
+    return $day . ' ' . $monthName . ' ' . $year;
+}
 ?>

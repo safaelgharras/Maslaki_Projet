@@ -10,8 +10,9 @@ require_once __DIR__ . "/lang_helper.php";
 $isInViews = strpos($_SERVER['PHP_SELF'], '/views/') !== false;
 $base = $isInViews ? '../' : '';
 
-// Get unread notifications count (New Schema)
+// Get unread notifications count (New Schema); detect platform admin (organizer staff)
 $unreadCount = 0;
+$isPlatformAdmin = false;
 if (isset($_SESSION['user_id'])) {
     try {
         $userId = $_SESSION['user_id'];
@@ -23,6 +24,10 @@ if (isset($_SESSION['user_id'])) {
         $notifStmt = $pdo->prepare($sql);
         $notifStmt->execute([$userId, $userId]);
         $unreadCount = $notifStmt->fetchColumn();
+
+        $roleStmt = $pdo->prepare("SELECT role FROM students WHERE id = ? LIMIT 1");
+        $roleStmt->execute([$userId]);
+        $isPlatformAdmin = ($roleStmt->fetchColumn() === 'admin');
     } catch (Exception $e) {}
 }
 ?>
@@ -54,6 +59,9 @@ if (isset($_SESSION['user_id'])) {
                 <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/orientation_explore.php"><?php echo __('orientation'); ?></a></li>
+                <?php if (!empty($isPlatformAdmin)): ?>
+                    <li><a href="<?php echo $base; ?>views/admin_dashboard.php" class="nav-platform-admin"><?php echo __('platform_admin_nav'); ?></a></li>
+                <?php endif; ?>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent ai-btn-nav"><?php echo __('ai_orientation'); ?> 🤖</a></li>
                     <li class="notif-menu-item">

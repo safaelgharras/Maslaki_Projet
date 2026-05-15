@@ -1,15 +1,10 @@
 <?php
-$pageTitle = "Admin — Avis";
+require_once "../includes/lang_helper.php";
+$pageTitle = __("platform_admin_reviews_page_title");
 require "../includes/header.php";
 require "../config/DataBase.php";
-
-// Simple admin check (in a real app, use roles)
-// For now, allow any logged-in user to access admin
-// You can restrict this later by adding an 'is_admin' column to students
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit();
-}
+require_once "../includes/platform_admin.php";
+require_platform_admin($pdo);
 
 // Handle approve/reject actions
 if (isset($_GET['approve']) && is_numeric($_GET['approve'])) {

@@ -39,10 +39,11 @@ $inst['city'] = getLocalizedDbField($inst, 'city');
 $inst['description'] = getLocalizedDbField($inst, 'description');
 $inst['requirements'] = getLocalizedDbField($inst, 'requirements');
 $inst['diplome'] = getLocalizedDbField($inst, 'diplome');
+$inst['duree_etudes'] = getLocalizedDbField($inst, 'duree_etudes');
 $inst['ville_nom'] = isset($inst['ville_nom_ar']) ? getLocalizedDbField($inst, 'ville_nom') : ($inst['ville_nom'] ?? '');
 
 // Get filieres with their domains
-$filiereSql = "SELECT f.*, d.nom as domain_nom, d.nom_ar as domain_nom_ar
+$filiereSql = "SELECT f.*, d.nom as domain_nom, d.nom_ar as domain_nom_ar, d.nom_en as domain_nom_en
                FROM filieres f 
                JOIN institution_filieres ifil ON f.id = ifil.filiere_id 
                LEFT JOIN domains d ON f.domain_id = d.id
@@ -54,7 +55,7 @@ $filieres = $filiereStmt->fetchAll();
 foreach ($filieres as &$f) {
     $f['nom'] = getLocalizedDbField($f, 'nom');
     $f['description'] = getLocalizedDbField($f, 'description');
-    $f['domain_nom'] = getLocalizedDbField(['domain_nom' => $f['domain_nom'], 'domain_nom_ar' => $f['domain_nom_ar'] ?? ''], 'domain_nom');
+    $f['domain_nom'] = getLocalizedDbField($f, 'domain_nom');
 }
 unset($f);
 
@@ -114,7 +115,7 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
             <div class="hero-text">
                 <span class="type-badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></span>
                 <h1><?php echo htmlspecialchars($inst['name']); ?></h1>
-                <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — Maroc</p>
+                <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — <?php echo __('morocco'); ?></p>
             </div>
         </div>
     </div>
@@ -290,5 +291,4 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 }
 </style>
 
-<?php require "../includes/footer.php"; ?>
 <?php require "../includes/footer.php"; ?>
