@@ -42,6 +42,52 @@ $inst['diplome'] = getLocalizedDbField($inst, 'diplome');
 $inst['duree_etudes'] = getLocalizedDbField($inst, 'duree_etudes');
 $inst['ville_nom'] = isset($inst['ville_nom_ar']) ? getLocalizedDbField($inst, 'ville_nom') : ($inst['ville_nom'] ?? '');
 
+// Check for parent university if this is a sub-school
+$parentUniversity = null;
+if (!empty($inst['parent_id'])) {
+    $parentStmt = $pdo->prepare("SELECT id, name, name_ar, name_en, type FROM institutions WHERE id = ?");
+    $parentStmt->execute([$inst['parent_id']]);
+    $parentUniversity = $parentStmt->fetch();
+    if ($parentUniversity) {
+        $parentUniversity['name'] = getLocalizedDbField($parentUniversity, 'name');
+    }
+}
+
+// Fetch sub-schools / child faculties if this is a parent university container
+$subSchools = [];
+$subStmt = $pdo->prepare("SELECT i.*, v.nom as ville_nom, v.nom_ar as ville_nom_ar 
+                         FROM institutions i 
+                         LEFT JOIN villes v ON i.ville_id = v.id 
+                         WHERE i.parent_id = ? 
+                         ORDER BY i.name ASC");
+$subStmt->execute([$id]);
+$subSchools = $subStmt->fetchAll();
+foreach ($subSchools as &$sub) {
+    $sub['name'] = getLocalizedDbField($sub, 'name');
+    $sub['ville_nom'] = isset($sub['ville_nom_ar']) ? getLocalizedDbField($sub, 'ville_nom') : ($sub['ville_nom'] ?? '');
+}
+unset($sub);
+
+// Fetch direct-tagged domains from pivot table
+$domainTags = [];
+try {
+    $domainTagsSql = "SELECT d.id, d.nom, d.nom_ar, d.nom_en 
+                      FROM domains d
+                      JOIN institution_domain idom ON d.id = idom.domain_id
+                      WHERE idom.institution_id = ?";
+    $domainTagsStmt = $pdo->prepare($domainTagsSql);
+    $domainTagsStmt->execute([$id]);
+    $domainTags = $domainTagsStmt->fetchAll();
+    foreach ($domainTags as &$dt) {
+        $dt['nom'] = getLocalizedDbField($dt, 'nom');
+    }
+    unset($dt);
+} catch (Exception $e) {}
+
+// Check specialized path flags
+$isCPGE = (strpos(strtolower($inst['name']), 'cpge') !== false || $inst['type'] === 'Preparatory');
+$isAlternativeTech = (strpos(strtolower($inst['name']), '1337') !== false || strpos(strtolower($inst['name']), 'youcode') !== false || ($inst['sector_type'] ?? '') === 'alternative');
+
 // Get filieres with their domains
 $filiereSql = "SELECT f.*, d.nom as domain_nom, d.nom_ar as domain_nom_ar, d.nom_en as domain_nom_en
                FROM filieres f 
@@ -109,13 +155,46 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 ?>
 
 <div class="detail-container">
+    <?php if ($isCPGE): ?>
+        <div class="excellence-ribbon">
+            <span class="ribbon-icon">✨</span>
+            <span class="ribbon-text"><?php echo __('excellence_track'); ?></span>
+        </div>
+    <?php endif; ?>
+
     <div class="detail-hero">
         <img src="<?php echo $mainImage; ?>" alt="<?php echo htmlspecialchars($inst['name']); ?>" class="hero-bg">
         <div class="hero-overlay">
             <div class="hero-text">
-                <span class="type-badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></span>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;">
+                    <span class="type-badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></span>
+                    <?php if ($isAlternativeTech): ?>
+                        <span class="tech-badge">🚀 <?php echo __('alternative_school'); ?></span>
+                    <?php endif; ?>
+                </div>
+
                 <h1><?php echo htmlspecialchars($inst['name']); ?></h1>
-                <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — <?php echo __('morocco'); ?></p>
+                
+                <?php if ($parentUniversity): ?>
+                    <p class="parent-link-banner" style="margin-top: 10px; font-weight: 600; font-size: 1.05rem;">
+                        🏢 <?php echo __('member_of'); ?> : 
+                        <a href="institution_detail.php?id=<?php echo $parentUniversity['id']; ?>" style="color: var(--orange); font-weight: 800; text-decoration: underline; transition: color 0.3s ease;">
+                            <?php echo htmlspecialchars($parentUniversity['name']); ?>
+                        </a>
+                    </p>
+                <?php else: ?>
+                    <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — <?php echo __('morocco'); ?></p>
+                <?php endif; ?>
+
+                <?php if (count($domainTags) > 0): ?>
+                    <div class="hero-domains-tags" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                        <?php foreach ($domainTags as $dt): ?>
+                            <span class="hero-domain-tag" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; padding: 6px 14px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                🏷️ <?php echo htmlspecialchars($dt['nom']); ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -126,6 +205,33 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                 <h2><?php echo __('about_institution'); ?></h2>
                 <p class="description"><?php echo nl2br(htmlspecialchars($inst['description'])); ?></p>
             </section>
+
+            <?php if (count($subSchools) > 0): ?>
+            <section class="info-card">
+                <h2>🏢 <?php echo __('connected_faculties'); ?></h2>
+                <div class="sub-schools-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <?php foreach($subSchools as $sub): ?>
+                        <?php
+                            $subImage = count($images) > 0 ? resolveDetailImage('', $sub['name']) : resolveDetailImage($sub['image'], $sub['name']);
+                        ?>
+                        <div class="sub-school-card" onclick="location.href='institution_detail.php?id=<?php echo $sub['id']; ?>'" style="cursor: pointer; border: 1.5px solid var(--border-color); border-radius: 16px; overflow: hidden; background: var(--bg-card); transition: all 0.3s ease; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+                            <img src="<?php echo $subImage; ?>" style="width:100%; height:140px; object-fit:cover;" alt="<?php echo htmlspecialchars($sub['name']); ?>">
+                            <div style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--orange);"><?php echo htmlspecialchars(translateType($sub['type'])); ?></span>
+                                    <h4 style="margin: 8px 0 5px 0; font-size:1rem; font-weight:800; color:var(--primary); line-height:1.3;"><?php echo htmlspecialchars($sub['name']); ?></h4>
+                                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">📍 <?php echo htmlspecialchars($sub['ville_nom'] ?? $sub['city']); ?></p>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:10px; font-size:0.8rem; margin-top: auto;">
+                                    <span style="color:var(--text-muted);"><?php echo __('seuil'); ?> : <strong style="color:var(--primary);"><?php echo $sub['seuil'] ?? $sub['min_average'] ?? '--'; ?></strong></span>
+                                    <span style="font-weight:700; color:var(--orange);"><?php echo __('details_arrow'); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+            <?php endif; ?>
 
             <?php if (count($images) > 1): ?>
             <section class="info-card">
@@ -245,49 +351,93 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 .detail-hero { height: 400px; border-radius: var(--radius-lg); overflow: hidden; position: relative; margin-bottom: 40px; box-shadow: var(--shadow-lg); }
 .hero-bg { width: 100%; height: 100%; object-fit: cover; }
 .hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 60px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: #fff; }
-.hero-text h1 { font-size: 2.5rem; margin: 10px 0; }
-.type-badge { background: var(--accent); padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+.hero-text h1 { font-size: 2.5rem; margin: 10px 0; font-weight: 850; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+.type-badge { background: var(--accent); padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Tech Badge for Alternative coding schools */
+.tech-badge { 
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Neon green gradient */
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* CPGE Excellence Ribbon */
+.excellence-ribbon {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 2px solid #eab308; /* Premium Gold border */
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 25px rgba(234, 179, 8, 0.15);
+    animation: goldPulse 3s infinite alternate;
+}
+@keyframes goldPulse {
+    0% { box-shadow: 0 10px 25px rgba(234, 179, 8, 0.15); }
+    100% { box-shadow: 0 10px 30px rgba(234, 179, 8, 0.35); }
+}
+.ribbon-icon {
+    font-size: 1.5rem;
+}
+.ribbon-text {
+    font-weight: 850;
+    font-size: 1.25rem;
+    color: #fef08a; /* Light gold text */
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
 
 .detail-grid { display: grid; grid-template-columns: 1fr 350px; gap: 40px; }
-.info-card { background: var(--white); padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 30px; }
-.info-card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+.info-card { background: var(--white); padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 30px; border: 1px solid var(--border-color); }
+.info-card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; font-weight: 800; }
 
 .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
 .gallery-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
 .gallery-item img:hover { transform: translateY(-5px); border-color: var(--accent); }
 
 .filieres-list { display: grid; gap: 15px; }
-.filiere-item { padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition); }
-.filiere-item:hover { border-color: var(--accent); background: rgba(var(--primary-rgb), 0.02); }
+.filiere-item { padding: 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition); background: #f8fafc; }
+.filiere-item:hover { border-color: var(--accent); background: rgba(var(--primary-rgb), 0.02); transform: translateX(5px); }
 .filiere-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.filiere-item h3 { font-size: 1.1rem; color: var(--primary); margin: 0; }
-.domain-tag { font-size: 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); padding: 2px 8px; border-radius: 4px; }
+.filiere-item h3 { font-size: 1.1rem; color: var(--primary); margin: 0; font-weight: 800; }
+.domain-tag { font-size: 0.75rem; background: rgba(var(--primary-rgb), 0.08); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: 700; }
 .filiere-item p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
 
 .bac-req-list { display: grid; gap: 8px; margin-top: 10px; }
-.bac-req-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 0.9rem; }
+.bac-req-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.06); padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); }
 .bac-code { font-weight: 700; color: var(--accent); }
 
 .detail-sidebar .sidebar-card { background: var(--primary); color: #fff; padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); position: sticky; top: 100px; }
-.sidebar-card h3 { margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+.sidebar-card h3 { margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; font-weight: 800; }
 .info-list { list-style: none; padding: 0; }
 .info-list li { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-.info-list li strong { display: block; font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 5px; }
+.info-list li strong { display: block; font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 .info-list li span { font-weight: 600; font-size: 1.1rem; }
-.req-text { font-size: 0.9rem; color: rgba(255,255,255,0.9); }
+.req-text { font-size: 0.9rem; color: rgba(255,255,255,0.9); line-height: 1.5; }
 
-.btn-full { width: 100%; margin-top: 15px; padding: 12px; }
-.btn-accent { background: var(--accent); color: #fff; }
-.btn-outline { border: 1.5px solid #fff; background: transparent; color: #fff; }
-.btn-outline:hover { background: #fff; color: var(--primary); }
+.btn-full { width: 100%; margin-top: 15px; padding: 12px; font-weight: 700; border-radius: 12px; }
+.btn-accent { background: var(--accent); color: #fff; transition: var(--transition); }
+.btn-accent:hover { background: #ea580c; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+.btn-outline { border: 1.5px solid #fff; background: transparent; color: #fff; transition: var(--transition); }
+.btn-outline:hover { background: #fff; color: var(--primary); transform: translateY(-2px); }
 
-[data-theme="dark"] .info-card { background: #161e31; }
-[data-theme="dark"] .filiere-item { border-color: #2a354f; }
+[data-theme="dark"] .info-card { background: #161e31; border-color: #242f49; }
+[data-theme="dark"] .filiere-item { border-color: #242f49; background: #0f172a; }
+[data-theme="dark"] .filiere-item:hover { border-color: var(--accent); }
 
 @media (max-width: 992px) {
     .detail-grid { grid-template-columns: 1fr; }
     .detail-hero { height: 300px; }
     .hero-text h1 { font-size: 1.8rem; }
+    .excellence-ribbon { flex-direction: column; text-align: center; gap: 8px; }
 }
 </style>
 

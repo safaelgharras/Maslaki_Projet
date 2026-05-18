@@ -18,6 +18,7 @@ $sql = "SELECT i.*, v.nom as city_name, v.nom_ar as city_name_ar,
         LEFT JOIN filieres f ON ifil.filiere_id = f.id
         LEFT JOIN domains d ON f.domain_id = d.id
         LEFT JOIN institution_bac_types ibt ON i.id = ibt.institution_id
+        LEFT JOIN institution_domain idom ON i.id = idom.institution_id
         WHERE 1=1";
 $params = [];
 
@@ -34,12 +35,14 @@ if (!empty($cityId)) {
 }
 
 if (!empty($catId)) {
-    $sql .= " AND d.categorie_id = ?";
+    $sql .= " AND (d.categorie_id = ? OR idom.domain_id = ?)";
+    $params[] = $catId;
     $params[] = $catId;
 }
 
 if (!empty($domainId)) {
-    $sql .= " AND f.domain_id = ?";
+    $sql .= " AND (f.domain_id = ? OR idom.domain_id = ?)";
+    $params[] = $domainId;
     $params[] = $domainId;
 }
 
@@ -54,11 +57,16 @@ if (!empty($bacId)) {
 }
 
 if (!empty($type)) {
-    if ($type === 'Public') {
-        $sql .= " AND i.type != 'Private'";
+    $lowerType = strtolower($type);
+    if (in_array($lowerType, ['public', 'private', 'semi-public', 'alternative'])) {
+        $sql .= " AND i.sector_type = ?";
+        $params[] = $lowerType;
+    } elseif ($type === 'Public') {
+        $sql .= " AND i.sector_type = 'public'";
     } else {
-        $sql .= " AND i.type = ?";
+        $sql .= " AND (i.type = ? OR i.sector_type = ?)";
         $params[] = $type;
+        $params[] = $lowerType;
     }
 }
 

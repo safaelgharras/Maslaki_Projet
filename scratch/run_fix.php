@@ -1,6 +1,8 @@
 <?php
-require "config/DataBase.php";
-$sql = file_get_contents("database/fix_seuil.sql");
+require __DIR__ . '/../config/DataBase.php';
+
+$sql = file_get_contents(__DIR__ . '/../database/fix_missing_images.sql');
 $pdo->exec($sql);
-echo "Seuil fixed.";
+
+echo "Missing images fixed!\n";
 ?>

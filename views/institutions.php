@@ -204,34 +204,6 @@ function translateType($type) {
                     <div style="width: 60px; height: 3px; background: var(--orange); margin-top: 8px; margin-bottom: 8px;"></div>
                     <p id="resultsCount" class="results-count" style="margin-bottom: 0;"><?php echo count($institutions); ?> <?php echo __('schools_found'); ?></p>
                 </div>
-                <div class="tags-container">
-                    <select id="tagSelect" class="filter-select" style="width: auto; min-width: 220px; font-weight: 600;">
-                        <option value="">🏷️ <?php echo __('all_tags'); ?></option>
-                        <optgroup label="<?php echo __('sector'); ?>">
-                            <option value="type_Public"><?php echo __('type_public'); ?></option>
-                            <option value="type_Private"><?php echo __('type_private'); ?></option>
-                        </optgroup>
-                        <optgroup label="<?php echo __('institution_types'); ?>">
-                            <option value="type_University"><?php echo __('type_university'); ?></option>
-                            <option value="type_Preparatory"><?php echo __('type_preparatory'); ?></option>
-                            <option value="type_Engineering"><?php echo __('type_engineering'); ?></option>
-                            <option value="type_Business"><?php echo __('type_business'); ?></option>
-                            <option value="type_Science"><?php echo __('type_science'); ?></option>
-                            <option value="type_Technical"><?php echo __('type_technical'); ?></option>
-                            <option value="type_Education"><?php echo __('type_education'); ?></option>
-                        </optgroup>
-                        <optgroup label="<?php echo __('domains_streams'); ?>">
-                            <option value="search_Informatique">Informatique</option>
-                            <option value="search_Finance">Finance</option>
-                            <option value="search_Marketing">Marketing</option>
-                            <option value="search_Droit">Droit</option>
-                            <option value="search_Médecine">Médecine</option>
-                            <option value="search_Architecture">Architecture</option>
-                            <option value="search_Data Science">Data Science</option>
-                            <option value="search_Gestion">Gestion</option>
-                        </optgroup>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -376,8 +348,6 @@ const resultsGrid = document.getElementById('resultsGrid');
 const resultsCount = document.getElementById('resultsCount');
 const resetBtn = document.getElementById('resetFilters');
 
-const tagSelect = document.getElementById('tagSelect');
-
 let debounceTimer;
 
 const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
@@ -386,14 +356,6 @@ let savedIds = <?php echo json_encode($savedIds); ?>;
 function doSearch() {
     const params = new URLSearchParams();
     let searchVal = searchInput.value;
-    
-    if (tagSelect && tagSelect.value) {
-        if (tagSelect.value.startsWith('type_')) {
-            params.set('type', tagSelect.value.replace('type_', ''));
-        } else if (tagSelect.value.startsWith('search_')) {
-            searchVal += ' ' + tagSelect.value.replace('search_', '');
-        }
-    }
 
     if (searchVal.trim()) params.set('search', searchVal.trim());
     if (filterCity.value) params.set('city_id', filterCity.value);
@@ -575,7 +537,7 @@ searchInput.addEventListener('input', () => {
     debounceTimer = setTimeout(doSearch, 300);
 });
 
-[filterCity, filterCategory, filterDomain, filterBac, filterType, tagSelect].forEach(el => {
+[filterCity, filterCategory, filterDomain, filterBac, filterType].forEach(el => {
     if (el) el.addEventListener('change', doSearch);
 });
 
@@ -632,7 +594,6 @@ if (resetBtn) {
         domainGroup.style.display = 'none';
         filterBac.value = '';
         filterType.value = '';
-        if (tagSelect) tagSelect.value = '';
         
         doSearch();
     });

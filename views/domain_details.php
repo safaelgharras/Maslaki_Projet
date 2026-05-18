@@ -73,10 +73,24 @@ function resolveDomainCardImage($name, $dbImage = null) {
     }
     return '../assets/images/default_school.jpg';
 }
+
+$domainStyles = [
+    1 => 'background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(14,165,233,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    2 => 'background: linear-gradient(135deg, rgba(24,24,27,0.95) 0%, rgba(234,88,12,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'52\' height=\'26\' viewBox=\'0 0 52 26\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z\' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    3 => 'background: linear-gradient(135deg, rgba(6,78,59,0.92) 0%, rgba(20,184,166,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    4 => 'background: linear-gradient(135deg, rgba(39,39,42,0.95) 0%, rgba(101,163,13,0.85) 100%), url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' opacity=\'0.08\'/%3E%3C/svg%3E") center/cover;',
+    5 => 'background: linear-gradient(135deg, rgba(30,58,138,0.92) 0%, rgba(202,138,4,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 40L40 0H20L0 20M40 40V20L20 40\'/%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    6 => 'background: linear-gradient(135deg, rgba(67,20,7,0.92) 0%, rgba(185,28,28,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.04\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\'/%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    7 => 'background: linear-gradient(135deg, rgba(88,28,135,0.92) 0%, rgba(219,39,119,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 20L20 40H40L20 0z\'/%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    8 => 'background: linear-gradient(135deg, rgba(14,116,144,0.92) 0%, rgba(14,165,233,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'20\' viewBox=\'0 0 100 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M21.184 20c.302-1.354.724-2.67 1.258-3.922A19.89 19.89 0 0 1 32 6.004V0H0v20h21.184zM60 20h40V0H68A19.89 19.89 0 0 0 60 6.004v13.996z\' fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'/%3E%3C/svg%3E") center/cover;',
+    9 => 'background: linear-gradient(135deg, rgba(120,53,15,0.92) 0%, rgba(217,119,6,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 0h20v20H0V0zm10 17L3 10l7-7 7 7-7 7z\'/%3E%3C/g%3E%3C/svg%3E") center/cover;',
+    10 => 'background: linear-gradient(135deg, rgba(51,65,85,0.92) 0%, rgba(71,85,105,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z\'/%3E%3C/g%3E%3C/svg%3E") center/cover;'
+];
+$heroBgStyle = isset($domainStyles[$domain['id']]) ? $domainStyles[$domain['id']] : 'background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);';
 ?>
 
 <div class="domain-details-page">
-    <div class="domain-hero">
+    <div class="domain-hero" style="<?php echo $heroBgStyle; ?>">
         <div class="container">
             <div class="hero-path">
                 <a href="orientation_explore.php"><?php echo __("orientation"); ?></a> / 
@@ -105,11 +119,13 @@ function resolveDomainCardImage($name, $dbImage = null) {
                     </select>
                 </div>
                 <div class="filter-col">
-                    <label>🏢 <?php echo __('type'); ?></label>
+                    <label>🏢 <?php echo __('sector'); ?></label>
                     <select id="filterType" class="modern-select">
                         <option value=""><?php echo __('all_types'); ?></option>
-                        <option value="Public"><?php echo __('type_public'); ?></option>
-                        <option value="Private"><?php echo __('type_private'); ?></option>
+                        <option value="public"><?php echo __('sector_public'); ?></option>
+                        <option value="private"><?php echo __('sector_private'); ?></option>
+                        <option value="semi-public"><?php echo __('sector_semi_public'); ?></option>
+                        <option value="alternative"><?php echo __('sector_alternative'); ?></option>
                     </select>
                 </div>
             </div>
@@ -144,11 +160,10 @@ function resolveDomainCardImage($name, $dbImage = null) {
 <style>
 .domain-details-page { padding-bottom: 120px; background: #fdfdfd; }
 .domain-hero { 
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
     color: white; 
-    padding: 140px 0 200px; 
-    margin-bottom: -100px; 
-    border-radius: 0 0 80px 80px; 
+    padding: 110px 0 140px; 
+    margin-bottom: -70px; 
+    border-radius: 0 0 50px 50px; 
     position: relative;
     overflow: hidden;
 }
@@ -401,14 +416,84 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resolveImage(inst) {
-        if (inst.image && inst.image !== 'default_school.jpg') {
-            return `../assets/images/institutions/${inst.image}`;
+        const name = (inst.name || '').trim();
+        const normalizedName = name.toLowerCase();
+
+        const institutionSubfolderImages = {
+            'cpge fes': 'CPGE Fez.jpg',
+            'cpge fez': 'CPGE Fez.jpg',
+            'cpge kenitra': 'CPGE Kenitra .jpg',
+            'cpge marrakech': 'CPGE Marrakech.WEBP',
+            'cpge oujda': 'CPGE Oujda.PNG',
+            'eigsi casablanca': 'EIGSI Casablanca.webp',
+            'emi rabat': 'EMI Rabat.webp',
+            'emsi casablanca': 'EMSI Casablanca.webp',
+            'emsi rabat': 'EMSI Rabat.PNG',
+            'encg agadir': 'ENCG Agadir.webp',
+            'encg kenitra': 'ENCG Kenitra.png',
+            'encg marrakech': 'ENCG Marrakech.webp',
+            'encg oujda': 'ENCG Oujda.webp',
+            'encg settat': 'ENCG Settat.webp',
+            'ens rabat': 'ENS Rabat.png',
+            'ensa casablanca': 'ENSA Casablanca.png',
+            'ensa fes': 'ENSA Fes.png',
+            'ensa kenitra': 'ENSA Kenitra.png',
+            'ensa marrakech': 'ENSA Marrakech.png',
+            'ensa oujda': 'ENSA Oujda.png',
+            'ensa tanger': 'ENSA Tanger.png',
+            'enset mohammedia': 'ENSET Mohammedia.webp',
+            'ensias rabat': 'ENSIAS Rabat.png',
+            'esca ecole de management': 'ESCA Ecole de Management Casablanca.webp',
+            'est agadir': 'EST Agadir.png',
+            'est casablanca': 'EST Casablanca.png',
+            'est fes': 'EST Fes.png',
+            'est kenitra': 'EST Kenitra.webp',
+            'est laayoune': 'EST Laayoune.png',
+            'est oujda': 'EST Oujda.webp',
+            'fs beni mellal': 'FS Beni Mellal.png',
+            'fs casablanca': 'FS Casablanca.png',
+            'fs errachidia': 'FS Errachidia.png',
+            'fs meknes': 'FS Meknes.png',
+            'fs oujda': 'FS Oujda.png',
+            'fs rabat': 'FS Rabat.png',
+            'fst al hoceima': 'FST Al Hoceima.jpg',
+            'fst casablanca': 'FST Casablanca.png',
+            'fst mohammedia': 'FST Mohammedia.png',
+            'fst settat': 'FST Settat - Hassan 1er.png',
+            'fst tanger': 'FST Tanger.png',
+            'heci casablanca': 'HECI Casablanca.png',
+            'hem casablanca': 'HEM Casablanca.png',
+            'iga casablanca': 'IGA Casablanca.png',
+            'inpt rabat': 'INPT Rabat.png',
+            'iscae casablanca': 'ISCAE Casablanca.png',
+            'isga marrakech': 'ISGA Marrakech.png',
+            'ofppt agadir': 'OFPPT Agadir.png',
+            'supmti casablanca': 'SUPMTI Casablanca.png',
+            'université hassan i': 'Université Hassan I Setat.PNG',
+            'université hassan ii': 'Université Hassan II Casablanca.PNG',
+            'université mohammed v': 'Université Mohammed V Rabat.PNG',
+            'université sidi mohamed ben abdellah': 'Université Sidi Mohamed Ben Abdellah Fes.png',
+            'université sultan moulay slimane': 'Université Sultan Moulay Slimane Bni melal.PNG'
+        };
+
+        let filename = '';
+        let folder = 'institutions/';
+
+        if (institutionSubfolderImages[normalizedName]) {
+            filename = institutionSubfolderImages[normalizedName];
+        } else if (inst.image && inst.image !== 'default_school.jpg') {
+            filename = inst.image;
+            if (filename.includes('/')) return `../assets/images/${filename}`;
+        } else {
+            return '../assets/images/default_school.jpg';
         }
-        // Basic resolution by name
-        return `../assets/images/default_school.jpg`; 
+
+        const safeFilename = filename.replace(/ /g, '%20');
+        return `../assets/images/${folder}${safeFilename}`;
     }
 
     function translateType(type) {
+        if (!type) return '';
         const map = {
             'Engineering': langTranslations.type_engineering,
             'Business': langTranslations.type_business,
@@ -418,9 +503,14 @@ document.addEventListener('DOMContentLoaded', function() {
             'Private': langTranslations.type_private,
             'Public': langTranslations.type_public,
             'Education': langTranslations.type_education,
-            'University': langTranslations.type_university
+            'University': langTranslations.type_university,
+            'public': <?php echo json_encode(__('sector_public')); ?>,
+            'private': <?php echo json_encode(__('sector_private')); ?>,
+            'semi-public': <?php echo json_encode(__('sector_semi_public')); ?>,
+            'alternative': <?php echo json_encode(__('sector_alternative')); ?>
         };
-        return map[type] || type;
+        const key = type.toLowerCase();
+        return map[type] || map[key] || type;
     }
 
     filterCity.addEventListener('change', updateResults);
