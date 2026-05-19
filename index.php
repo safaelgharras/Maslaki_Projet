@@ -17,7 +17,45 @@ $pageTitle = __("home");
 require "includes/header.php";
 ?>
 
-<div class="hero">
+<div class="hero hero-slider" id="heroSlider">
+    <?php
+    // Fetch 5 popular institutions for the slider, ensuring Solicode is included
+    $sliderImages = [];
+    try {
+        // Fetch Solicode specifically
+        $solicodeStmt = $pdo->query("SELECT image FROM institutions WHERE name LIKE '%solicode%' AND image IS NOT NULL AND image != '' LIMIT 1");
+        if ($solicodeStmt) {
+            $solicodeImg = $solicodeStmt->fetchColumn();
+            if ($solicodeImg) $sliderImages[] = $solicodeImg;
+        }
+        
+        // Fetch remaining popular institutions
+        $limit = 5 - count($sliderImages);
+        $popularStmt = $pdo->query("SELECT image FROM institutions WHERE is_popular = 1 AND name NOT LIKE '%solicode%' AND image IS NOT NULL AND image != '' LIMIT $limit");
+        if ($popularStmt) {
+            $popularImages = $popularStmt->fetchAll(PDO::FETCH_COLUMN);
+            $sliderImages = array_merge($sliderImages, $popularImages);
+        }
+        
+        // Fallback to random if we don't have 5
+        if (count($sliderImages) < 5) {
+            $needed = 5 - count($sliderImages);
+            $moreStmt = $pdo->query("SELECT image FROM institutions WHERE name NOT LIKE '%solicode%' AND image IS NOT NULL AND image != '' ORDER BY RAND() LIMIT $needed");
+            if ($moreStmt) {
+                $moreImages = $moreStmt->fetchAll(PDO::FETCH_COLUMN);
+                $sliderImages = array_merge($sliderImages, $moreImages);
+            }
+        }
+    } catch (Exception $e) {}
+    
+    // Add slide elements
+    foreach ($sliderImages as $index => $img) {
+        $activeClass = $index === 0 ? 'active' : '';
+        echo "<div class='hero-slide $activeClass' style='background-image: url(\"{$base}assets/images/institutions/" . htmlspecialchars($img) . "\");'></div>";
+    }
+    ?>
+    <div class="hero-overlay"></div>
+    
     <div class="hero-content">
         <div class="hero-badge"><?php echo __('hero_badge'); ?></div>
         <h1 class="text-gradient"><?php echo __('hero_title'); ?></h1>
@@ -32,6 +70,63 @@ require "includes/header.php";
         </div>
     </div>
 </div>
+
+<style>
+.hero-slider {
+    position: relative;
+    overflow: hidden;
+    background: #0f172a; /* Fallback dark background */
+}
+.hero-slide {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out, transform 6s linear;
+    z-index: 1;
+    transform: scale(1.05);
+}
+.hero-slide.active {
+    opacity: 1;
+    transform: scale(1);
+}
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* Create a dark gradient overlay matching the UI */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.65) 0%, rgba(30, 58, 138, 0.45) 100%);
+    z-index: 2;
+}
+.hero-content {
+    position: relative;
+    z-index: 3;
+}
+.hero-content h1.text-gradient {
+    background: linear-gradient(135deg, #ffffff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.85));
+}
+.hero-content p {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    font-weight: 500;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.hero-slide');
+    if (slides.length <= 1) return;
+    
+    let currentSlide = 0;
+    setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+    }, 5000); // Switch every 5 seconds
+});
+</script>
 
 
 <div class="stats-section">

@@ -3,7 +3,10 @@
 <footer class="main-footer">
     <div class="footer-container">
         <div class="footer-brand">
-            <div class="logo">Maslaki</div>
+            <div class="logo">
+                <img src="<?php echo $base; ?>assets/images/logo.png" alt="Maslaki Logo" class="brand-logo" style="height: 56px; vertical-align: middle; margin-right: 12px; object-fit: contain;">
+                Maslaki
+            </div>
             <p><?php echo __('footer_desc'); ?></p>
             
         </div>

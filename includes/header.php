@@ -51,7 +51,7 @@ if (isset($_SESSION['user_id'])) {
     <nav class="navbar">
         <div class="nav-container">
             <a href="<?php echo $base; ?>index.php" class="brand">
-                <span class="logo-box">M</span>
+                <img src="<?php echo $base; ?>assets/images/logo.png" alt="Maslaki Logo" class="brand-logo" style="height: 48px; margin-right: 12px; object-fit: contain;">
                 <span class="logo-text">Maslaki</span>
             </a>
             
@@ -136,7 +136,7 @@ if (isset($_SESSION['user_id'])) {
 /* Branding Styles */
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s ease; }
 .brand:hover { transform: scale(1.02); }
-.logo-box { background: var(--orange, #f97316); color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3); }
+[data-theme="dark"] .brand-logo { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)); }
 .logo-text { font-size: 1.6rem; font-weight: 900; color: var(--primary-dark, var(--primary)); letter-spacing: -0.5px; }
 
 /* Notification Dropdown Animation */
