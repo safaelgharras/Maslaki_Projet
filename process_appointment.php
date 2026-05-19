@@ -19,8 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$userId, $title, $date, $time]);
         
         // Add a notification for the student
-        $notifStmt = $pdo->prepare("INSERT INTO notifications (student_id, message, type) VALUES (?, ?, 'success')");
-        $notifStmt->execute([$userId, "Votre rendez-vous pour '$title' a été enregistré."]);
+        $notifStmt = $pdo->prepare("INSERT INTO notifications (target_user_id, title, message, type, is_global) VALUES (?, 'Rendez-vous Confirmé', ?, 'system', 0)");
+        $notifStmt->execute([$userId, "Votre rendez-vous pour '$title' a été enregistré avec succès."]);
 
         header("Location: views/appointments.php?success=1");
     } catch (Exception $e) {

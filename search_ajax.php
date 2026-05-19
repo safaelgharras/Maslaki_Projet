@@ -71,7 +71,7 @@ if (!empty($type)) {
 }
 
 $sql .= " GROUP BY i.id";
-$sql .= " ORDER BY i.is_popular DESC, i.name ASC";
+$sql .= " ORDER BY (i.id = 131) DESC, i.is_popular DESC, i.name ASC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);

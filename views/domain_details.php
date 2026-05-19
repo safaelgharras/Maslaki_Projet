@@ -353,7 +353,8 @@ const langTranslations = {
     type_technical: <?php echo json_encode(__('type_technical')); ?>,
     type_education: <?php echo json_encode(__('type_education')); ?>,
     type_private: <?php echo json_encode(__('type_private')); ?>,
-    type_public: <?php echo json_encode(__('type_public')); ?>
+    type_public: <?php echo json_encode(__('type_public')); ?>,
+    type_digital: <?php echo json_encode(__('type_digital')); ?>
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -504,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Public': langTranslations.type_public,
             'Education': langTranslations.type_education,
             'University': langTranslations.type_university,
+            'Digital': langTranslations.type_digital,
             'public': <?php echo json_encode(__('sector_public')); ?>,
             'private': <?php echo json_encode(__('sector_private')); ?>,
             'semi-public': <?php echo json_encode(__('sector_semi_public')); ?>,

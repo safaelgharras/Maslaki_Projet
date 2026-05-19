@@ -28,6 +28,10 @@ $types = [];
 try {
     $types = $pdo->query("SELECT DISTINCT type FROM institutions WHERE type IS NOT NULL ORDER BY type")->fetchAll(PDO::FETCH_COLUMN);
     $bac_types = $pdo->query("SELECT * FROM bac_types ORDER BY nom ASC")->fetchAll();
+    foreach ($bac_types as &$bt) {
+        $bt['nom'] = getLocalizedDbField($bt, 'nom');
+    }
+    unset($bt);
 } catch (Exception $e) {}
 
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -37,9 +41,9 @@ $sql = "SELECT * FROM institutions";
 try {
     // Try with is_popular if it exists
     $pdo->query("SELECT is_popular FROM institutions LIMIT 1");
-    $sql .= " ORDER BY is_popular DESC, name ASC";
+    $sql .= " ORDER BY (id = 131) DESC, is_popular DESC, name ASC";
 } catch (Exception $e) {
-    $sql .= " ORDER BY name ASC";
+    $sql .= " ORDER BY (id = 131) DESC, name ASC";
 }
 $institutions = $pdo->query($sql)->fetchAll();
 foreach ($institutions as &$inst) {
@@ -245,7 +249,7 @@ function translateType($type) {
 
 <style>
 .institutions-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; padding: 40px 0; align-items: start; }
-.filter-sidebar { background: var(--white); padding: 30px; border-radius: 24px; box-shadow: var(--shadow-md); height: fit-content; position: relative; border: 1px solid var(--border-color); }
+.filter-sidebar { background: var(--white); padding: 30px; border-radius: 24px; box-shadow: var(--shadow-md); height: fit-content; position: sticky; top: 100px; border: 1px solid var(--border-color); max-height: calc(100vh - 140px); overflow-y: auto; }
 .sidebar-header h3 { font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--bg-light); padding-bottom: 15px; }
 
 .filter-group { margin-bottom: 25px; }
@@ -271,7 +275,7 @@ function translateType($type) {
 
 @media (max-width: 992px) {
     .institutions-layout { grid-template-columns: 1fr; }
-    .filter-sidebar { position: static; margin-bottom: 30px; }
+    .filter-sidebar { position: static; margin-bottom: 30px; max-height: none; overflow-y: visible; }
 }
 
 .card-info-row {
@@ -334,7 +338,8 @@ const langTranslations = {
     type_technical: <?php echo json_encode(__('type_technical')); ?>,
     type_education: <?php echo json_encode(__('type_education')); ?>,
     type_private: <?php echo json_encode(__('type_private')); ?>,
-    type_public: <?php echo json_encode(__('type_public')); ?>
+    type_public: <?php echo json_encode(__('type_public')); ?>,
+    type_digital: <?php echo json_encode(__('type_digital')); ?>
 };
 
 const searchInput = document.getElementById('searchInput');
@@ -388,7 +393,8 @@ function translateType(type) {
         'Private': langTranslations.type_private,
         'Public': langTranslations.type_public,
         'Education': langTranslations.type_education,
-        'University': langTranslations.type_university
+        'University': langTranslations.type_university,
+        'Digital': langTranslations.type_digital
     };
     return map[type] || type;
 }
@@ -511,26 +517,7 @@ function resolveCardImage(inst) {
     return `../assets/images/${folder}${safeFilename}`;
 }
 
-function toggleSave(id, btn) {
-    fetch(`../save_school.php?id=${id}`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                btn.classList.toggle('active');
-                // Update global state
-                const idStr = id.toString();
-                if (savedIds.includes(idStr)) {
-                    savedIds = savedIds.filter(sid => sid !== idStr);
-                } else {
-                    savedIds.push(idStr);
-                }
-            }
-        });
-}
+
 
 searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);

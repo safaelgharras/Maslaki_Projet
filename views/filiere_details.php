@@ -345,8 +345,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function translateType(type) {
-        // Reusing standard mapping
-        return type; 
+        if (!type) return '';
+        const map = {
+            'Engineering': <?php echo json_encode(__('type_engineering')); ?>,
+            'Business': <?php echo json_encode(__('type_business')); ?>,
+            'Science': <?php echo json_encode(__('type_science')); ?>,
+            'Technical': <?php echo json_encode(__('type_technical')); ?>,
+            'Preparatory': <?php echo json_encode(__('type_preparatory')); ?>,
+            'Private': <?php echo json_encode(__('type_private')); ?>,
+            'Public': <?php echo json_encode(__('type_public')); ?>,
+            'Education': <?php echo json_encode(__('type_education')); ?>,
+            'University': <?php echo json_encode(__('type_university')); ?>,
+            'Digital': <?php echo json_encode(__('type_digital')); ?>
+        };
+        return map[type] || type;
     }
 
     function truncate(str, n) {

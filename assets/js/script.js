@@ -46,11 +46,29 @@ document.head.appendChild(style);
 
 // Global Toggle Save function
 function toggleSave(id, btn) {
-    fetch(`../save_school.php?id=${id}`)
+    fetch(`../save_school.php?id=${id}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
                 btn.classList.toggle('active');
+                
+                // Update global savedIds array if it exists
+                if (typeof savedIds !== 'undefined') {
+                    const idStr = id.toString();
+                    const idNum = parseInt(id);
+                    if (savedIds.includes(idStr)) {
+                        savedIds = savedIds.filter(sid => sid !== idStr && parseInt(sid) !== idNum);
+                    } else if (savedIds.includes(idNum)) {
+                        savedIds = savedIds.filter(sid => sid !== idStr && parseInt(sid) !== idNum);
+                    } else {
+                        savedIds.push(idStr);
+                    }
+                }
+                
                 if (btn.classList.contains('active')) {
                     btn.innerHTML = '❤';
                     btn.title = 'Sauvegardé';

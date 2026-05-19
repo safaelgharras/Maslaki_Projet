@@ -139,15 +139,100 @@ function translateType($type) {
 }
 
 function resolveDetailImage($path, $name) {
-    if (empty($path) || $path === 'default_school.jpg') {
-        // Try specific naming convention
-        $candidates = [$name . ".webp", $name . ".png", $name . ".jpg"];
-        foreach ($candidates as $c) {
-            if (file_exists("../assets/images/" . $c)) return "../assets/images/" . $c;
-        }
-        return "../assets/images/default_school.jpg";
+    $name = trim($name);
+    $normalizedName = strtolower($name);
+    
+    // Map of known images in the institutions/ subfolder
+    $institutionSubfolderImages = [
+        'cpge fes' => 'CPGE Fez.jpg',
+        'cpge fez' => 'CPGE Fez.jpg',
+        'cpge kenitra' => 'CPGE Kenitra .jpg',
+        'cpge marrakech' => 'CPGE Marrakech.WEBP',
+        'cpge oujda' => 'CPGE Oujda.PNG',
+        'eigsi casablanca' => 'EIGSI Casablanca.webp',
+        'emi rabat' => 'EMI Rabat.webp',
+        'emsi casablanca' => 'EMSI Casablanca.webp',
+        'emsi rabat' => 'EMSI Rabat.PNG',
+        'encg agadir' => 'ENCG Agadir.webp',
+        'encg kenitra' => 'ENCG Kenitra.png',
+        'encg marrakech' => 'ENCG Marrakech.webp',
+        'encg oujda' => 'ENCG Oujda.webp',
+        'encg settat' => 'ENCG Settat.webp',
+        'encg tanger' => 'ENCG Tanger.png',
+        'encg casablanca' => 'ENCG casablanca.png',
+        'ens rabat' => 'ENS Rabat.png',
+        'ensa casablanca' => 'ENSA Casablanca.png',
+        'ensa fes' => 'ENSA Fes.png',
+        'ensa kenitra' => 'ENSA Kenitra.png',
+        'ensa marrakech' => 'ENSA Marrakech.png',
+        'ensa oujda' => 'ENSA Oujda.png',
+        'ensa tanger' => 'ENSA Tanger.png',
+        'enset mohammedia' => 'ENSET Mohammedia.webp',
+        'ensias rabat' => 'ENSIAS Rabat.png',
+        'esca ecole de management' => 'ESCA Ecole de Management Casablanca.webp',
+        'est agadir' => 'EST Agadir.png',
+        'est casablanca' => 'EST Casablanca.png',
+        'est fes' => 'EST Fes.png',
+        'est kenitra' => 'EST Kenitra.webp',
+        'est laayoune' => 'EST Laayoune.png',
+        'est oujda' => 'EST Oujda.webp',
+        'fs beni mellal' => 'FS Beni Mellal.png',
+        'fs casablanca' => 'FS Casablanca.png',
+        'fs errachidia' => 'FS Errachidia.png',
+        'fs meknes' => 'FS Meknes.png',
+        'fs oujda' => 'FS Oujda.png',
+        'fs rabat' => 'FS Rabat.png',
+        'fst al hoceima' => 'FST Al Hoceima.jpg',
+        'fst casablanca' => 'FST Casablanca.png',
+        'fst mohammedia' => 'FST Mohammedia.png',
+        'fst settat' => 'FST Settat - Hassan 1er.png',
+        'fst tanger' => 'FST Tanger.png',
+        'heci casablanca' => 'HECI Casablanca.png',
+        'hem casablanca' => 'HEM Casablanca.png',
+        'iga casablanca' => 'IGA Casablanca.png',
+        'inpt rabat' => 'INPT Rabat.png',
+        'iscae casablanca' => 'ISCAE Casablanca.png',
+        'isga marrakech' => 'ISGA Marrakech.png',
+        'ofppt agadir' => 'OFPPT Agadir.png',
+        'supmti casablanca' => 'SUPMTI Casablanca.png',
+        'université hassan i' => 'Université Hassan I Setat.PNG',
+        'université hassan ii' => 'Université Hassan II Casablanca.PNG',
+        'université mohammed v' => 'Université Mohammed V Rabat.PNG',
+        'université sidi mohamed ben abdellah' => 'Université Sidi Mohamed Ben Abdellah Fes.png',
+        'université sultan moulay slimane' => 'Université Sultan Moulay Slimane Bni melal.PNG',
+        'solicode tanger' => 'Solicode-Tanger.png',
+        'solicode – centre solidaire digital' => 'Solicode-Tanger.png',
+        'solicode – centre solidaire' => 'Solicode-Tanger.png'
+    ];
+
+    if (isset($institutionSubfolderImages[$normalizedName])) {
+        $filename = $institutionSubfolderImages[$normalizedName];
+        return "../assets/images/institutions/" . $filename;
     }
-    if (file_exists("../assets/images/" . $path)) return "../assets/images/" . $path;
+
+    if (!empty($path) && $path !== 'default_school.jpg') {
+        if (strpos($path, '/') !== false) {
+            return "../assets/images/" . $path;
+        }
+        if (file_exists("../assets/images/institutions/" . $path)) {
+            return "../assets/images/institutions/" . $path;
+        }
+        if (file_exists("../assets/images/" . $path)) {
+            return "../assets/images/" . $path;
+        }
+    }
+
+    $extensions = ['.webp', '.png', '.jpg', '.jpeg', '.WEBP', '.PNG', '.JPG', '.JPEG'];
+    foreach ($extensions as $ext) {
+        $candidate = $name . $ext;
+        if (file_exists("../assets/images/institutions/" . $candidate)) {
+            return "../assets/images/institutions/" . $candidate;
+        }
+        if (file_exists("../assets/images/" . $candidate)) {
+            return "../assets/images/" . $candidate;
+        }
+    }
+
     return "../assets/images/default_school.jpg";
 }
 
