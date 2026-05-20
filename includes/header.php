@@ -354,16 +354,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Theme Switching
     const themeLightBtn = document.getElementById('themeLightBtn');
     const themeDarkBtn = document.getElementById('themeDarkBtn');
+    
     if (themeLightBtn && themeDarkBtn) {
+        // Initialize active state based on current theme
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            themeDarkBtn.classList.add('active');
+            themeLightBtn.classList.remove('active');
+        } else {
+            themeLightBtn.classList.add('active');
+            themeDarkBtn.classList.remove('active');
+        }
+
         themeLightBtn.addEventListener('click', (e) => {
             e.preventDefault();
             document.documentElement.setAttribute('data-theme', 'light');
             localStorage.setItem('theme', 'light');
+            themeLightBtn.classList.add('active');
+            themeDarkBtn.classList.remove('active');
         });
+        
         themeDarkBtn.addEventListener('click', (e) => {
             e.preventDefault();
             document.documentElement.setAttribute('data-theme', 'dark');
             localStorage.setItem('theme', 'dark');
+            themeDarkBtn.classList.add('active');
+            themeLightBtn.classList.remove('active');
         });
     }
 

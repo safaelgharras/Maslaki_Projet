@@ -19,11 +19,13 @@ $sql = "SELECT i.*, v.nom as city_name, v.nom_ar as city_name_ar,
         LEFT JOIN domains d ON f.domain_id = d.id
         LEFT JOIN institution_bac_types ibt ON i.id = ibt.institution_id
         LEFT JOIN institution_domain idom ON i.id = idom.institution_id
+        LEFT JOIN domains d2 ON idom.domain_id = d2.id
         WHERE 1=1";
 $params = [];
 
 if (!empty($search)) {
-    $sql .= " AND (i.name LIKE ? OR i.description LIKE ? OR f.nom LIKE ?)";
+    $sql .= " AND (i.name LIKE ? OR i.name_ar LIKE ? OR i.description LIKE ? OR f.nom LIKE ?)";
+    $params[] = "%$search%";
     $params[] = "%$search%";
     $params[] = "%$search%";
     $params[] = "%$search%";
@@ -35,13 +37,14 @@ if (!empty($cityId)) {
 }
 
 if (!empty($catId)) {
-    $sql .= " AND (d.categorie_id = ? OR idom.domain_id = ?)";
+    $sql .= " AND (d.categorie_id = ? OR d2.categorie_id = ?)";
     $params[] = $catId;
     $params[] = $catId;
 }
 
 if (!empty($domainId)) {
-    $sql .= " AND (f.domain_id = ? OR idom.domain_id = ?)";
+    $sql .= " AND (f.domain_id = ? OR idom.domain_id = ? OR ifil.filiere_id = ?)";
+    $params[] = $domainId;
     $params[] = $domainId;
     $params[] = $domainId;
 }
@@ -57,17 +60,9 @@ if (!empty($bacId)) {
 }
 
 if (!empty($type)) {
-    $lowerType = strtolower($type);
-    if (in_array($lowerType, ['public', 'private', 'semi-public', 'alternative'])) {
-        $sql .= " AND i.sector_type = ?";
-        $params[] = $lowerType;
-    } elseif ($type === 'Public') {
-        $sql .= " AND i.sector_type = 'public'";
-    } else {
-        $sql .= " AND (i.type = ? OR i.sector_type = ?)";
-        $params[] = $type;
-        $params[] = $lowerType;
-    }
+    $sql .= " AND (i.type = ? OR i.sector_type = ?)";
+    $params[] = $type;
+    $params[] = strtolower($type);
 }
 
 $sql .= " GROUP BY i.id";
@@ -88,6 +83,9 @@ foreach ($institutions as &$inst) {
         'city_ar' => $inst['city_ar'] ?? $inst['city_name_ar'] ?? ''
     ];
     $inst['city'] = getLocalizedDbField($cityData, 'city');
+    
+    $inst['diplome'] = getLocalizedDbField($inst, 'diplome');
+    $inst['duree_etudes'] = getLocalizedDbField($inst, 'duree_etudes');
     
     // Filieres list localization
     $inst['filieres_list'] = getLocalizedDbField([

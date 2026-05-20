@@ -133,37 +133,47 @@ function translateType($type) {
 <?php if (count($results) == 0): ?>
     <div class="empty-state">
         <div class="icon">😔</div>
-        <p>Aucune école ne correspond à tes critères. Essaie d'ajuster ta moyenne ou ta ville.</p>
-        <a href="views/ai_form.php" class="btn btn-primary btn-lg" style="margin-top:15px;">Réessayer</a>
+        <p><?php echo __('ai_empty_state') ?? "Aucune école ne correspond à tes critères. Essaie d'ajuster ta moyenne ou ta ville."; ?></p>
+        <a href="views/ai_form.php" class="btn btn-primary btn-lg" style="margin-top:15px;"><?php echo __('try_again') ?? 'Réessayer'; ?></a>
     </div>
 <?php else: ?>
     <div class="cards-grid">
         <?php foreach($results as $index => $r): ?>
-            <?php $imagePath = resolveInstitutionImagePath($r['name'], $r['image'] ?? null); ?>
+            <?php 
+                $imagePath = resolveInstitutionImagePath($r['name'], $r['image'] ?? null); 
+                $schoolName = getLocalizedDbField($r, 'name');
+                $schoolCity = getLocalizedDbField($r, 'city');
+                $schoolTypeKey = 'type_' . strtolower($r['type']);
+                $schoolType = __($schoolTypeKey) !== $schoolTypeKey ? __($schoolTypeKey) : $r['type'];
+                $diplome = getLocalizedDbField($r, 'diplome');
+                $duree = getLocalizedDbField($r, 'duree_etudes');
+                $reqStr = getLocalizedDbField($r, 'requirements');
+                $desc = getLocalizedDbField($r, 'description');
+            ?>
             <div class="card ai-card stagger-<?php echo ($index % 5) + 1; ?>">
-                <img src="<?php echo htmlspecialchars($imagePath); ?>" class="card-img" alt="<?php echo htmlspecialchars($r['name']); ?>">
+                <img src="<?php echo htmlspecialchars($imagePath); ?>" class="card-img" alt="<?php echo htmlspecialchars($schoolName); ?>">
                 <div class="card-body">
                     <div class="card-header-flex">
-                        <span class="premium-badge"><?php echo htmlspecialchars(translateType($r["type"])); ?></span>
+                        <span class="premium-badge"><?php echo htmlspecialchars($schoolType); ?></span>
                         <?php if (!empty($city) && strtolower($r["city"]) === strtolower($city)): ?>
-                            <span class="location-badge city-match">📍 Ta ville</span>
+                            <span class="location-badge city-match"><?php echo __('your_city') ?? '📍 Ta ville'; ?></span>
                         <?php endif; ?>
                     </div>
                     
-                    <h3 style="margin-top: 5px;"><?php echo htmlspecialchars($r["name"]); ?></h3>
+                    <h3 style="margin-top: 5px;"><?php echo htmlspecialchars($schoolName); ?></h3>
                     
-                    <p class="school-location" style="margin: 5px 0 10px 0;">📍 <?php echo htmlspecialchars($r["city"]); ?></p>
+                    <p class="school-location" style="margin: 5px 0 10px 0;">📍 <?php echo htmlspecialchars($schoolCity ?: __('morocco') ?? 'Maroc'); ?></p>
 
-                    <p style="font-size: 0.85rem; color: var(--text-muted); min-height: 40px; margin-bottom: 12px;"><?php echo htmlspecialchars($r["description"]); ?></p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); min-height: 40px; margin-bottom: 12px;"><?php echo htmlspecialchars($desc); ?></p>
                     
                     <div class="card-info-row" style="display: flex; gap: 15px; margin-bottom: 15px; font-size: 0.85rem; color: var(--text-muted);">
-                        <span>🎓 <?php echo htmlspecialchars($r['diplome'] ?? 'Diplôme'); ?></span>
-                        <span>⏳ <?php echo htmlspecialchars($r['duree_etudes'] ?? '--'); ?></span>
+                        <span>🎓 <?php echo htmlspecialchars($diplome ?: __('diploma') ?? 'Diplôme'); ?></span>
+                        <span>⏳ <?php echo htmlspecialchars($duree ?: '--'); ?></span>
                     </div>
 
                     <div class="requirements" style="margin-bottom: 15px;">
                         <?php 
-                            $reqs = explode(',', $r["requirements"] ?? '');
+                            $reqs = explode(',', $reqStr ?? '');
                             foreach($reqs as $req) {
                                 if(!empty(trim($req))) {
                                     echo '<span class="requirement-tag">' . htmlspecialchars(trim($req)) . '</span>';
@@ -173,12 +183,12 @@ function translateType($type) {
                     </div>
 
                     <div class="card-footer" style="margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                        <span class="seuil">Moyenne min: <strong><?php echo htmlspecialchars($r["min_average"]); ?>/20</strong></span>
+                        <span class="seuil"><?php echo __('min_average') ?? 'Moyenne min'; ?>: <strong><?php echo htmlspecialchars($r["min_average"]); ?>/20</strong></span>
                         <div class="card-actions">
                             <?php if (isset($_SESSION['user_id'])): ?>
-                                <a href="save_school.php?id=<?php echo $r['id']; ?>" class="btn btn-save" style="margin: 0; padding: 6px 12px;">Sauvegarder</a>
+                                <a href="save_school.php?id=<?php echo $r['id']; ?>" class="btn btn-save" style="margin: 0; padding: 6px 12px;"><?php echo __('save'); ?></a>
                             <?php endif; ?>
-                            <a href="views/institution_detail.php?id=<?php echo $r['id']; ?>" class="btn-link" style="font-size: 0.85rem;">Détails →</a>
+                            <a href="views/institution_detail.php?id=<?php echo $r['id']; ?>" class="btn-link" style="font-size: 0.85rem;"><?php echo __('details_arrow'); ?></a>
                         </div>
                     </div>
                 </div>

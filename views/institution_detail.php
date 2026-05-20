@@ -415,14 +415,20 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                     </li>
                 </ul>
                 
-                <?php if ($inst['site_web']): ?>
-                    <a href="<?php echo htmlspecialchars($inst['site_web']); ?>" target="_blank" class="btn btn-accent btn-full">
+                <?php 
+                if (!empty($inst['site_web'])): 
+                    $site_web = trim($inst['site_web']);
+                    if (!preg_match("~^(?:f|ht)tps?://~i", $site_web)) {
+                        $site_web = "https://" . $site_web;
+                    }
+                ?>
+                    <a href="<?php echo htmlspecialchars($site_web); ?>" target="_blank" class="btn btn-accent btn-full" style="display: block; text-align: center; border-radius: 30px; font-weight: 800; color: #0f172a; padding: 14px; text-decoration: none;">
                         🌐 <?php echo __('official_website'); ?>
                     </a>
                 <?php endif; ?>
                 
                 <?php if ($isLoggedIn): ?>
-                    <a href="../save_school.php?id=<?php echo $id; ?>" class="btn btn-outline btn-full">
+                    <a href="../save_school.php?id=<?php echo $id; ?>" class="btn btn-outline btn-full" style="display: block; text-align: center; border-radius: 30px; font-weight: 800; padding: 14px; text-decoration: none; border-width: 2px;">
                         ❤ <?php echo __('save'); ?>
                     </a>
                 <?php endif; ?>

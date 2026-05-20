@@ -34,24 +34,29 @@ $schools = $stmt->fetchAll();
 <?php if (count($schools) == 0): ?>
     <div class="empty-state">
         <div class="icon">📭</div>
-        <p>Tu n'as pas encore sauvegardé d'école.</p>
-        <a href="institutions.php" class="btn btn-orange btn-lg" style="margin-top:15px;">Explorer les universités</a>
+        <p><?php echo __('saved_schools_empty') ?? "Tu n'as pas encore sauvegardé d'école."; ?></p>
+        <a href="institutions.php" class="btn btn-orange btn-lg" style="margin-top:15px;"><?php echo __('explore_universities') ?? "Explorer les universités"; ?></a>
     </div>
 <?php else: ?>
     <div class="cards-grid">
-        <?php foreach($schools as $s): ?>
+        <?php foreach($schools as $s): 
+            $schoolName = getLocalizedDbField($s, 'name');
+            $schoolCity = getLocalizedDbField($s, 'city');
+            $schoolTypeKey = 'type_' . strtolower($s['type']);
+            $schoolType = __($schoolTypeKey) !== $schoolTypeKey ? __($schoolTypeKey) : $s['type'];
+        ?>
             <div class="card">
-                <img src="../assets/images/institutions/<?php echo $s['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo htmlspecialchars($s['name']); ?>">
+                <img src="../assets/images/institutions/<?php echo $s['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo htmlspecialchars($schoolName); ?>">
                 <div class="card-body">
-                    <div class="card-tag"><?php echo htmlspecialchars($s['type']); ?></div>
-                    <h3><?php echo htmlspecialchars($s['name']); ?></h3>
-                    <p class="school-location">📍 <?php echo htmlspecialchars($s['city']); ?></p>
+                    <div class="card-tag"><?php echo htmlspecialchars($schoolType); ?></div>
+                    <h3><?php echo htmlspecialchars($schoolName); ?></h3>
+                    <p class="school-location">📍 <?php echo htmlspecialchars($schoolCity ?: __('morocco')); ?></p>
                     
                     <div class="card-footer">
-                        <span class="seuil">Seuil: <strong><?php echo $s['min_average'] ?? '--'; ?></strong></span>
+                        <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $s['min_average'] ?? '--'; ?></strong></span>
                         <div class="card-actions">
-                            <a href="institution_detail.php?id=<?php echo $s['id']; ?>" class="btn-link">Détails →</a>
-                            <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('Supprimer cette école ?');">Supprimer</a>
+                            <a href="institution_detail.php?id=<?php echo $s['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>
+                            <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('<?php echo __('confirm_delete_school') ?? 'Supprimer cette école ?'; ?>');"><?php echo __('delete'); ?></a>
                         </div>
                     </div>
                 </div>

@@ -179,13 +179,17 @@ document.addEventListener('DOMContentLoaded', function() {
             <p style="text-align:center; color:var(--text-muted); width:100%;"><?php echo __('no_schools'); ?></p>
         <?php else:
             foreach ($popular as $school):
+                $schoolName = getLocalizedDbField($school, 'name');
+                $schoolCity = getLocalizedDbField($school, 'city');
+                $schoolTypeKey = 'type_' . strtolower($school['type']);
+                $schoolType = __($schoolTypeKey) !== $schoolTypeKey ? __($schoolTypeKey) : $school['type'];
         ?>
         <div class="card hover-lift">
-            <img src="assets/images/institutions/<?php echo $school['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo $school['name']; ?>">
+            <img src="assets/images/institutions/<?php echo $school['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo htmlspecialchars($schoolName); ?>">
             <div class="card-body">
-                <div class="card-tag"><?php echo $school['type']; ?></div>
-                <h3><?php echo $school['name']; ?></h3>
-                <p class="school-location">📍 <?php echo $school['city'] ?? 'Maroc'; ?></p>
+                <div class="card-tag"><?php echo htmlspecialchars($schoolType); ?></div>
+                <h3><?php echo htmlspecialchars($schoolName); ?></h3>
+                <p class="school-location">📍 <?php echo htmlspecialchars($schoolCity ?: 'Maroc'); ?></p>
                 <div class="card-footer">
                     <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $school['seuil'] ?? '--'; ?></strong></span>
                     <a href="views/institution_detail.php?id=<?php echo $school['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>

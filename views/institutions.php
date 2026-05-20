@@ -50,6 +50,8 @@ foreach ($institutions as &$inst) {
     $inst['name'] = getLocalizedDbField($inst, 'name');
     $inst['description'] = getLocalizedDbField($inst, 'description');
     $inst['city'] = getLocalizedDbField($inst, 'city');
+    $inst['diplome'] = getLocalizedDbField($inst, 'diplome');
+    $inst['duree_etudes'] = getLocalizedDbField($inst, 'duree_etudes');
 }
 unset($inst);
 
@@ -339,7 +341,10 @@ const langTranslations = {
     type_education: <?php echo json_encode(__('type_education')); ?>,
     type_private: <?php echo json_encode(__('type_private')); ?>,
     type_public: <?php echo json_encode(__('type_public')); ?>,
-    type_digital: <?php echo json_encode(__('type_digital')); ?>
+    type_digital: <?php echo json_encode(__('type_digital')); ?>,
+    type_art: <?php echo json_encode(__('type_art')); ?>,
+    type_management: <?php echo json_encode(__('type_management')); ?>,
+    type_medical: <?php echo json_encode(__('type_medical')); ?>
 };
 
 const searchInput = document.getElementById('searchInput');
@@ -394,7 +399,10 @@ function translateType(type) {
         'Public': langTranslations.type_public,
         'Education': langTranslations.type_education,
         'University': langTranslations.type_university,
-        'Digital': langTranslations.type_digital
+        'Digital': langTranslations.type_digital,
+        'Art': langTranslations.type_art,
+        'Management': langTranslations.type_management,
+        'Medical': langTranslations.type_medical
     };
     return map[type] || type;
 }
