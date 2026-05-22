@@ -25,10 +25,24 @@ if (isset($_SESSION['user_id'])) {
         $notifStmt->execute([$userId, $userId]);
         $unreadCount = $notifStmt->fetchColumn();
 
-        $roleStmt = $pdo->prepare("SELECT role FROM students WHERE id = ? LIMIT 1");
-        $roleStmt->execute([$userId]);
-        $isPlatformAdmin = ($roleStmt->fetchColumn() === 'admin');
-    } catch (Exception $e) {}
+        $profileStmt = $pdo->prepare("SELECT role, name, avatar FROM students WHERE id = ? LIMIT 1");
+        $profileStmt->execute([$userId]);
+        $profileRow = $profileStmt->fetch(PDO::FETCH_ASSOC);
+        $isPlatformAdmin = ($profileRow['role'] ?? '') === 'admin';
+
+        // Prefer session avatar (set at login), fall back to DB value
+        $navAvatar = $_SESSION['user_avatar'] ?? $profileRow['avatar'] ?? '';
+        $navName   = $_SESSION['user_name']  ?? $profileRow['name']   ?? '';
+        // Build initials fallback (up to 2 chars)
+        $initials = '';
+        foreach (explode(' ', trim($navName)) as $part) {
+            if ($part !== '') $initials .= strtoupper($part[0]);
+            if (strlen($initials) >= 2) break;
+        }
+    } catch (Exception $e) {
+        $navAvatar = '';
+        $initials  = '?';
+    }
 }
 ?>
 
@@ -83,7 +97,15 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                     </li>
                     <li class="user-menu-item">
-                        <div class="user-profile-icon" id="profileBtn" title="<?php echo __('profile'); ?>">👤</div>
+                        <div class="user-profile-icon" id="profileBtn" title="<?php echo __('profile'); ?>">
+                            <?php if (!empty($navAvatar)): ?>
+                                <img src="<?php echo htmlspecialchars($navAvatar); ?>" alt="<?php echo htmlspecialchars($navName); ?>" class="nav-avatar-img">
+                            <?php elseif (!empty($initials)): ?>
+                                <span class="nav-avatar-initials"><?php echo htmlspecialchars($initials); ?></span>
+                            <?php else: ?>
+                                👤
+                            <?php endif; ?>
+                        </div>
                         <div class="profile-dropdown" id="profileDropdown">
                             <a href="<?php echo $base; ?>views/dashboard.php" class="dropdown-link">
                                 <span class="dropdown-icon">👤</span> <?php echo __('profile'); ?>
