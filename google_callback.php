@@ -11,15 +11,6 @@ require_once "config/DataBase.php";
 require_once "config/google_config.php";
 
 // ──────────────────────────────────────────────
-// Helper: ensure `avatar` column exists
-// ──────────────────────────────────────────────
-try {
-    $pdo->exec("ALTER TABLE students ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL");
-} catch (PDOException $e) {
-    // Column may already exist – safe to ignore
-}
-
-// ──────────────────────────────────────────────
 // Route A: Dev-mode simulator
 // ──────────────────────────────────────────────
 if (isset($_POST['dev_mode']) && $_POST['dev_mode'] === '1') {

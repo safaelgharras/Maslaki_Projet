@@ -1,56 +1,56 @@
 <?php
-session_start();
+require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
 
-$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-
-function respondDelete($isAjax, $status, $message, $redirectParam = 'error') {
-    if ($isAjax) {
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['status' => $status, 'message' => $message]);
-        exit();
-    }
-
-    header("Location: views/saved_schools.php?{$redirectParam}=" . urlencode($message));
-    exit();
-}
-
-if (!isset($_SESSION["user_id"])) {
-    if ($isAjax) {
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
-        exit();
+// Validate authentication
+if (!is_logged_in()) {
+    if (is_ajax_request()) {
+        json_error('Not logged in', 401);
     }
     header("Location: views/login.php");
     exit();
 }
 
-$requestMethod = $_SERVER["REQUEST_METHOD"] ?? 'GET';
-$rawId = null;
-
-if ($requestMethod !== "POST" || !verify_csrf_token($_POST["csrf_token"] ?? null)) {
-    respondDelete($isAjax, 'error', 'Invalid request', 'error');
+// Validate request method and CSRF
+if (!require_method('POST', false) || !verify_csrf_token($_POST["csrf_token"] ?? null)) {
+    if (is_ajax_request()) {
+        json_error('Invalid request', 403);
+    }
+    header("Location: views/saved_schools.php?error=" . urlencode('Invalid request'));
+    exit();
 }
 
-if (isset($_POST["id"])) {
-    $rawId = $_POST["id"];
-}
-
+// Validate ID parameter
+$rawId = $_POST["id"] ?? null;
 if ($rawId === null || !is_numeric($rawId)) {
-    respondDelete($isAjax, 'error', 'Invalid school', 'error');
+    if (is_ajax_request()) {
+        json_error('Invalid school');
+    }
+    header("Location: views/saved_schools.php?error=" . urlencode('Invalid school'));
+    exit();
 }
 
-$student_id = $_SESSION["user_id"];
+$student_id = current_user_id();
 $institution_id = (int) $rawId;
 
+// Delete the saved school
 $sql = "DELETE FROM saved_schools WHERE student_id = ? AND institution_id = ?";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$student_id, $institution_id]);
 
 if ($stmt->rowCount() > 0) {
-    respondDelete($isAjax, 'success', 'Ecole supprimee avec succes', 'success');
+    if (is_ajax_request()) {
+        json_success('Ecole supprimee avec succes');
+    }
+    header("Location: views/saved_schools.php?success=" . urlencode('Ecole supprimee avec succes'));
+    exit();
 }
 
-respondDelete($isAjax, 'error', 'Ecole introuvable ou deja supprimee', 'error');
+// No rows affected
+if (is_ajax_request()) {
+    json_error('Ecole introuvable ou deja supprimee', 404);
+}
+header("Location: views/saved_schools.php?error=" . urlencode('Ecole introuvable ou deja supprimee'));
+exit();
 ?>

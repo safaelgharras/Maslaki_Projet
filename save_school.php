@@ -1,38 +1,34 @@
 <?php
-session_start();
+require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
 
-$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-
-if (!isset($_SESSION["user_id"])) {
-    if ($isAjax) {
-        echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
-        exit();
+// Validate authentication and request method
+if (!is_logged_in()) {
+    if (is_ajax_request()) {
+        json_error('Not logged in', 401);
     }
     header("Location: views/login.php");
     exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST" || !verify_csrf_token($_POST["csrf_token"] ?? null)) {
-    if ($isAjax) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
-        exit();
+if (!require_method('POST', false) || !verify_csrf_token($_POST["csrf_token"] ?? null)) {
+    if (is_ajax_request()) {
+        json_error('Invalid request', 403);
     }
     header("Location: views/institutions.php?error=Invalid request");
     exit();
 }
 
 if (!isset($_POST["id"]) || !is_numeric($_POST["id"])) {
-    if ($isAjax) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid ID']);
-        exit();
+    if (is_ajax_request()) {
+        json_error('Invalid ID');
     }
     header("Location: views/institutions.php?error=Invalid school");
     exit();
 }
 
-$student_id = $_SESSION["user_id"];
+$student_id = current_user_id();
 $institution_id = (int) $_POST["id"];
 
 // Check if already saved
@@ -41,23 +37,22 @@ $check->execute([$student_id, $institution_id]);
 $existing = $check->fetch();
 
 if ($existing) {
-    // If it exists, we REMOVE it (toggle behavior for AJAX)
+    // If it exists, remove it (toggle behavior)
     $pdo->prepare("DELETE FROM saved_schools WHERE id = ?")->execute([$existing['id']]);
-    if ($isAjax) {
-        echo json_encode(['status' => 'success', 'action' => 'removed']);
-        exit();
+    if (is_ajax_request()) {
+        json_success('School removed', ['action' => 'removed']);
     }
     header("Location: views/institutions.php?success=School removed");
     exit();
 }
 
+// Save the school
 $sql = "INSERT INTO saved_schools (student_id, institution_id) VALUES (?, ?)";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$student_id, $institution_id]);
 
-if ($isAjax) {
-    echo json_encode(['status' => 'success', 'action' => 'saved']);
-    exit();
+if (is_ajax_request()) {
+    json_success('School saved', ['action' => 'saved']);
 }
 
 header("Location: views/institutions.php?success=School saved successfully!");

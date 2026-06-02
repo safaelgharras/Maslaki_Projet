@@ -1,40 +1,37 @@
 <?php
-session_start();
+require_once "includes/helpers.php";
 require "config/DataBase.php";
-
 require_once "includes/lang_helper.php";
 
-if (!isset($_SESSION["user_id"])) {
-    header('Content-Type: application/json');
-    echo json_encode([]);
-    exit();
+if (!is_logged_in()) {
+    json_response([]);
 }
 
-$userId = $_SESSION["user_id"];
+$userId = current_user_id();
 
 function time_ago($timestamp) {
     $time_ago = strtotime($timestamp);
     $current_time = time();
     $time_difference = $current_time - $time_ago;
     $seconds = $time_difference;
-    $minutes      = round($seconds / 60);
-    $hours           = round($seconds / 3600);
-    $days          = round($seconds / 84600);
-    $weeks          = round($seconds / 604800);
-    $months          = round($seconds / 2629440);
-    $years          = round($seconds / 31553280);
+    $minutes = round($seconds / 60);
+    $hours   = round($seconds / 3600);
+    $days    = round($seconds / 84600);
+    $weeks   = round($seconds / 604800);
+    $months  = round($seconds / 2629440);
+    $years   = round($seconds / 31553280);
 
-    if($seconds <= 60) {
+    if ($seconds <= 60) {
         return __('just_now');
-    } else if($minutes <= 60) {
+    } else if ($minutes <= 60) {
         return $minutes == 1 ? __('one_minute_ago') : sprintf(__('minutes_ago'), $minutes);
-    } else if($hours <= 24) {
+    } else if ($hours <= 24) {
         return $hours == 1 ? __('one_hour_ago') : sprintf(__('hours_ago'), $hours);
-    } else if($days <= 7) {
+    } else if ($days <= 7) {
         return $days == 1 ? __('yesterday') : sprintf(__('days_ago'), $days);
-    } else if($weeks <= 4.3) {
+    } else if ($weeks <= 4.3) {
         return $weeks == 1 ? __('one_week_ago') : sprintf(__('weeks_ago'), $weeks);
-    } else if($months <= 12) {
+    } else if ($months <= 12) {
         return $months == 1 ? __('one_month_ago') : sprintf(__('months_ago'), $months);
     } else {
         return $years == 1 ? __('one_year_ago') : sprintf(__('years_ago'), $years);
@@ -56,25 +53,24 @@ try {
 
     foreach ($notifications as &$n) {
         $n['time_ago'] = time_ago($n['created_at']);
-        $n['title'] = __(getLocalizedDbField($n, 'title'));
-        $n['message'] = __(getLocalizedDbField($n, 'message'));
+        $n['title'] = __(localized_db_field($n, 'title'));
+        $n['message'] = __(localized_db_field($n, 'message'));
+        
         // Add icon based on type
-        switch($n['type']) {
-            case 'system': $n['icon'] = '⚙️'; break;
-            case 'school': $n['icon'] = '🏫'; break;
-            case 'filiere': $n['icon'] = '🎓'; break;
-            case 'announcement': $n['icon'] = '📢'; break;
-            case 'maintenance': $n['icon'] = '🛠️'; break;
-            case 'orientation': $n['icon'] = '🧭'; break;
-            case 'deadline': $n['icon'] = '⏰'; break;
-            default: $n['icon'] = '🔔';
-        }
+        $iconMap = [
+            'system'       => '⚙️',
+            'school'       => '🏫',
+            'filiere'      => '🎓',
+            'announcement' => '📢',
+            'maintenance'  => '🛠️',
+            'orientation'  => '🧭',
+            'deadline'     => '⏰',
+        ];
+        $n['icon'] = $iconMap[$n['type']] ?? '🔔';
     }
 
-    header('Content-Type: application/json');
-    echo json_encode($notifications);
+    json_response($notifications);
 } catch (Exception $e) {
-    header('Content-Type: application/json');
-    echo json_encode(["error" => $e->getMessage()]);
+    json_error($e->getMessage(), 500);
 }
 ?>

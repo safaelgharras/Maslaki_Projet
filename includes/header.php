@@ -257,14 +257,34 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'announcement': icon = '📢'; break;
         }
 
-        toast.innerHTML = `
-            <div class="toast-icon">${icon}</div>
-            <div class="toast-body">
-                <div class="toast-title">${notif.title}</div>
-                <div class="toast-msg">${notif.message.substring(0, 80)}${notif.message.length > 80 ? '...' : ''}</div>
-            </div>
-            <button class="toast-close">&times;</button>
-        `;
+        // Build toast DOM safely to prevent XSS
+        const toastIcon = document.createElement('div');
+        toastIcon.className = 'toast-icon';
+        toastIcon.textContent = icon;
+
+        const toastTitle = document.createElement('div');
+        toastTitle.className = 'toast-title';
+        toastTitle.textContent = notif.title;
+
+        const truncatedMsg = notif.message.length > 80
+            ? notif.message.substring(0, 80) + '...'
+            : notif.message;
+        const toastMsg = document.createElement('div');
+        toastMsg.className = 'toast-msg';
+        toastMsg.textContent = truncatedMsg;
+
+        const toastBody = document.createElement('div');
+        toastBody.className = 'toast-body';
+        toastBody.appendChild(toastTitle);
+        toastBody.appendChild(toastMsg);
+
+        const toastClose = document.createElement('button');
+        toastClose.className = 'toast-close';
+        toastClose.textContent = '\u00D7';
+
+        toast.appendChild(toastIcon);
+        toast.appendChild(toastBody);
+        toast.appendChild(toastClose);
 
         toastContainer.appendChild(toast);
         setTimeout(() => toast.classList.add('active'), 100);
@@ -323,16 +343,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                notifList.innerHTML = data.map(n => `
-                    <div class="notif-item ${n.is_read == 0 ? 'unread' : ''}" onclick="handleNotifClick(${n.id}, '${n.related_link}', this)">
-                        <div class="notif-icon-circle">${n.icon}</div>
-                        <div class="notif-content">
-                            <p><strong>${n.title}</strong></p>
-                            <p>${n.message.substring(0, 60)}...</p>
-                            <span class="notif-time">${n.time_ago}</span>
-                        </div>
-                    </div>
-                `).join('');
+                // Build notification items safely to prevent XSS
+                notifList.innerHTML = '';
+                data.forEach(n => {
+                    const item = document.createElement('div');
+                    item.className = 'notif-item' + (n.is_read == 0 ? ' unread' : '');
+                    item.addEventListener('click', function() {
+                        handleNotifClick(parseInt(n.id, 10), n.related_link, this);
+                    });
+
+                    const iconCircle = document.createElement('div');
+                    iconCircle.className = 'notif-icon-circle';
+                    iconCircle.textContent = n.icon;
+
+                    const content = document.createElement('div');
+                    content.className = 'notif-content';
+
+                    const titleP = document.createElement('p');
+                    const strong = document.createElement('strong');
+                    strong.textContent = n.title;
+                    titleP.appendChild(strong);
+
+                    const msgP = document.createElement('p');
+                    msgP.textContent = n.message.substring(0, 60) + '...';
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'notif-time';
+                    timeSpan.textContent = n.time_ago;
+
+                    content.appendChild(titleP);
+                    content.appendChild(msgP);
+                    content.appendChild(timeSpan);
+
+                    item.appendChild(iconCircle);
+                    item.appendChild(content);
+                    notifList.appendChild(item);
+                });
             });
     }
 

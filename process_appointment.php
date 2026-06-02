@@ -1,43 +1,80 @@
 <?php
-session_start();
+require_once "includes/helpers.php";
 require "config/DataBase.php";
+require_once "includes/csrf.php";
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: views/login.php");
-    exit();
-}
+require_auth('views/login.php');
 
-$userId = $_SESSION["user_id"];
+$userId = current_user_id();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = $_POST['title'];
-    $date = $_POST['date'];
-    $time = $_POST['time'];
+    $action = $_POST['action'] ?? null;
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO appointments (student_id, title, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, 'pending')");
-        $stmt->execute([$userId, $title, $date, $time]);
-        
-        // Add a notification for the student
-        $notifStmt = $pdo->prepare("INSERT INTO notifications (target_user_id, title, message, type, is_global) VALUES (?, 'Rendez-vous Confirmé', ?, 'system', 0)");
-        $notifStmt->execute([$userId, "Votre rendez-vous pour '$title' a été enregistré avec succès."]);
+    // Handle appointment creation
+    if ($action === 'create') {
+        if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+            header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+            exit();
+        }
 
-        header("Location: views/appointments.php?success=1");
-    } catch (Exception $e) {
-        header("Location: views/appointments.php?error=1");
+        $title = $_POST['title'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $time = $_POST['time'] ?? '';
+
+        if (empty($title) || empty($date) || empty($time)) {
+            header("Location: views/appointments.php?error=" . urlencode('Tous les champs sont requis'));
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO appointments (student_id, title, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, 'pending')");
+            $stmt->execute([$userId, $title, $date, $time]);
+            
+            // Add a notification for the student
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (target_user_id, title, message, type, is_global) VALUES (?, 'Rendez-vous Confirmé', ?, 'system', 0)");
+            $notifStmt->execute([$userId, "Votre rendez-vous pour '$title' a été enregistré avec succès."]);
+
+            header("Location: views/appointments.php?success=1");
+        } catch (Exception $e) {
+            error_log("Appointment creation failed: " . $e->getMessage());
+            header("Location: views/appointments.php?error=1");
+        }
+        exit();
     }
-    exit();
+
+    // Handle appointment deletion
+    if ($action === 'delete') {
+        if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+            header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+            exit();
+        }
+
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+        if ($id <= 0) {
+            header("Location: views/appointments.php?error=" . urlencode('ID invalide'));
+            exit();
+        }
+
+        try {
+            // Verify ownership before deletion
+            $stmt = $pdo->prepare("DELETE FROM appointments WHERE id = ? AND student_id = ?");
+            $stmt->execute([$id, $userId]);
+            
+            if ($stmt->rowCount() > 0) {
+                header("Location: views/appointments.php?deleted=1");
+            } else {
+                header("Location: views/appointments.php?error=" . urlencode('Rendez-vous introuvable'));
+            }
+        } catch (Exception $e) {
+            error_log("Appointment deletion failed: " . $e->getMessage());
+            header("Location: views/appointments.php?error=1");
+        }
+        exit();
+    }
 }
 
-if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
-    try {
-        $stmt = $pdo->prepare("DELETE FROM appointments WHERE id = ? AND student_id = ?");
-        $stmt->execute([$id, $userId]);
-        header("Location: views/appointments.php?deleted=1");
-    } catch (Exception $e) {
-        header("Location: views/appointments.php?error=1");
-    }
-    exit();
-}
+// Invalid request
+header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+exit();
 ?>

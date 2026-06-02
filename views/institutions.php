@@ -7,7 +7,6 @@ require_once "../includes/csrf.php";
 // Get metadata for filters with safety checks
 $villes = [];
 $categories = [];
-$migrationNeeded = false;
 
 try {
     $villes = $pdo->query("SELECT * FROM villes ORDER BY nom ASC")->fetchAll();
@@ -22,7 +21,7 @@ try {
     }
     unset($c);
 } catch (Exception $e) {
-    $migrationNeeded = true;
+    // Filter metadata unavailable; page will render without filters.
 }
 
 $types = [];
@@ -127,16 +126,6 @@ function translateType($type) {
 ?>
 
 <div class="institutions-layout">
-    <?php if ($migrationNeeded): ?>
-        <div class="migration-alert" style="grid-column: 1/-1; background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-            <span>⚠️</span>
-            <div>
-                <strong><?php echo __('update_required'); ?></strong> 
-                <a href="../migrate.php" style="text-decoration: underline; font-weight: 700;"><?php echo __('click_to_update_db'); ?></a>.
-            </div>
-        </div>
-    <?php endif; ?>
-
     <!-- Filter Sidebar -->
 
     <aside class="filter-sidebar">

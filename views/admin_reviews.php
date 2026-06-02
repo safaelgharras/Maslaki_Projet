@@ -35,20 +35,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit();
 }
 
-if (false && isset($_GET['approve']) && is_numeric($_GET['approve'])) {
-    $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
-    $stmt->execute([(int)$_GET['approve']]);
-    header("Location: admin_reviews.php?success=Avis approuvé");
-    exit();
-}
-
-if (false && isset($_GET['reject']) && is_numeric($_GET['reject'])) {
-    $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
-    $stmt->execute([(int)$_GET['reject']]);
-    header("Location: admin_reviews.php?success=Avis supprimé");
-    exit();
-}
-
 // Get all pending reviews
 $pendingSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
                FROM reviews 

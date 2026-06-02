@@ -2,6 +2,7 @@
 $pageTitle = "Mes Rendez-vous";
 require "../includes/header.php";
 require "../config/DataBase.php";
+require_once "../includes/csrf.php";
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
@@ -37,6 +38,8 @@ $appointments = $stmt->fetchAll();
             <div class="form-card">
                 <h3><?php echo __('book_new_appointment'); ?></h3>
                 <form action="../process_appointment.php" method="POST">
+                    <?php echo csrf_input(); ?>
+                    <input type="hidden" name="action" value="create">
                     <div class="form-group">
                         <label><?php echo __('appointment_subject'); ?></label>
                         <input type="text" name="title" placeholder="<?php echo __('appointment_subject_placeholder'); ?>" required>
@@ -77,7 +80,12 @@ $appointments = $stmt->fetchAll();
                                 <span class="badge <?php echo $statusClass; ?>"><?php echo __('status_' . $app['status']); ?></span>
                             </div>
                             <div class="app-actions">
-                                <a href="../process_appointment.php?delete=<?php echo $app['id']; ?>" class="btn-delete" onclick="return confirm('<?php echo addslashes(__('delete_appointment_confirm')); ?>')">×</a>
+                                <form method="POST" action="../process_appointment.php" style="display:inline;">
+                                    <?php echo csrf_input(); ?>
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<?php echo $app['id']; ?>">
+                                    <button type="submit" class="btn-delete" onclick="return confirm('<?php echo addslashes(__('delete_appointment_confirm')); ?>')">×</button>
+                                </form>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -151,7 +159,8 @@ html[dir="rtl"] .appointments-list-section { order: 1; }
 
 .app-actions { margin-left: auto; }
 html[dir="rtl"] .app-actions { margin-left: 0; margin-right: auto; }
-.btn-delete { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #fef2f2; color: #ef4444; font-size: 1.5rem; text-decoration: none; transition: all 0.2s ease; border: 1px solid #fee2e2; }
+.app-actions form { display: inline; margin: 0; padding: 0; }
+.btn-delete { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #fef2f2; color: #ef4444; font-size: 1.5rem; text-decoration: none; transition: all 0.2s ease; border: 1px solid #fee2e2; cursor: pointer; }
 .btn-delete:hover { background: #fee2e2; color: #b91c1c; transform: scale(1.08); border-color: #fca5a5; }
 
 /* Empty state */

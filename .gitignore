@@ -1,0 +1,8 @@
+# Environment variables – never commit real credentials
+.env
+
+# OS / editor noise
+desktop.ini
+*.log
+.DS_Store
+Thumbs.db
