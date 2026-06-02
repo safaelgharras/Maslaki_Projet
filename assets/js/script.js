@@ -46,10 +46,19 @@ document.head.appendChild(style);
 
 // Global Toggle Save function
 function toggleSave(id, btn) {
-    fetch(`../save_school.php?id=${id}`, {
+    const body = new URLSearchParams();
+    body.set('id', id);
+    if (typeof csrfToken !== 'undefined') {
+        body.set('csrf_token', csrfToken);
+    }
+
+    fetch(`../save_school.php`, {
+        method: 'POST',
         headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
     })
         .then(res => res.json())
         .then(data => {

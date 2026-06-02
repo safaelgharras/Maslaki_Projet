@@ -4,17 +4,45 @@ $pageTitle = __("platform_admin_reviews_page_title");
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
+require_once "../includes/csrf.php";
 require_platform_admin($pdo);
 
 // Handle approve/reject actions
-if (isset($_GET['approve']) && is_numeric($_GET['approve'])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
+        header("Location: admin_reviews.php?error=Requete%20invalide");
+        exit();
+    }
+
+    $reviewId = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
+    $action = $_POST['action'] ?? '';
+
+    if ($reviewId > 0 && $action === 'approve') {
+        $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
+        $stmt->execute([$reviewId]);
+        header("Location: admin_reviews.php?success=Avis%20approuve");
+        exit();
+    }
+
+    if ($reviewId > 0 && $action === 'reject') {
+        $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
+        $stmt->execute([$reviewId]);
+        header("Location: admin_reviews.php?success=Avis%20supprime");
+        exit();
+    }
+
+    header("Location: admin_reviews.php?error=Action%20invalide");
+    exit();
+}
+
+if (false && isset($_GET['approve']) && is_numeric($_GET['approve'])) {
     $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
     $stmt->execute([(int)$_GET['approve']]);
     header("Location: admin_reviews.php?success=Avis approuvé");
     exit();
 }
 
-if (isset($_GET['reject']) && is_numeric($_GET['reject'])) {
+if (false && isset($_GET['reject']) && is_numeric($_GET['reject'])) {
     $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
     $stmt->execute([(int)$_GET['reject']]);
     header("Location: admin_reviews.php?success=Avis supprimé");
@@ -72,8 +100,18 @@ $approvedReviews = $approvedStmt->fetchAll();
                 <?php echo htmlspecialchars($rev["content"]); ?>
             </div>
             <div class="card-actions">
-                <a href="admin_reviews.php?approve=<?php echo $rev['id']; ?>" class="btn btn-primary" style="background:#27ae60;">✅ Approuver</a>
-                <a href="admin_reviews.php?reject=<?php echo $rev['id']; ?>" class="btn btn-danger" onclick="return confirm('Supprimer cet avis ?');">❌ Rejeter</a>
+                <form method="POST" action="admin_reviews.php" style="display:inline;">
+                    <?php echo csrf_input(); ?>
+                    <input type="hidden" name="review_id" value="<?php echo $rev['id']; ?>">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="btn btn-primary" style="background:#27ae60;">Approuver</button>
+                </form>
+                <form method="POST" action="admin_reviews.php" style="display:inline;" onsubmit="return confirm('Supprimer cet avis ?');">
+                    <?php echo csrf_input(); ?>
+                    <input type="hidden" name="review_id" value="<?php echo $rev['id']; ?>">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn btn-danger">Rejeter</button>
+                </form>
             </div>
         </div>
     <?php endforeach; ?>

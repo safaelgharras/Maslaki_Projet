@@ -1,6 +1,7 @@
 <?php
 session_start();
 require "config/DataBase.php";
+require_once "includes/csrf.php";
 
 $pageTitle = "Résultats IA";
 require "includes/header.php";
@@ -186,7 +187,11 @@ function translateType($type) {
                         <span class="seuil"><?php echo __('min_average') ?? 'Moyenne min'; ?>: <strong><?php echo htmlspecialchars($r["min_average"]); ?>/20</strong></span>
                         <div class="card-actions">
                             <?php if (isset($_SESSION['user_id'])): ?>
-                                <a href="save_school.php?id=<?php echo $r['id']; ?>" class="btn btn-save" style="margin: 0; padding: 6px 12px;"><?php echo __('save'); ?></a>
+                                <form method="POST" action="save_school.php" style="display:inline;">
+                                    <?php echo csrf_input(); ?>
+                                    <input type="hidden" name="id" value="<?php echo $r['id']; ?>">
+                                    <button type="submit" class="btn btn-save" style="margin: 0; padding: 6px 12px;"><?php echo __('save'); ?></button>
+                                </form>
                             <?php endif; ?>
                             <a href="views/institution_detail.php?id=<?php echo $r['id']; ?>" class="btn-link" style="font-size: 0.85rem;"><?php echo __('details_arrow'); ?></a>
                         </div>
@@ -201,4 +206,4 @@ function translateType($type) {
     <a href="views/ai_form.php" class="btn btn-primary btn-lg">Nouvelle Recherche</a>
 </div>
 
-<?php require "includes/footer.php"; ?>
+<?php require "includes/footer.php"; ?>

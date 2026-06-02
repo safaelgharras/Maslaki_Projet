@@ -291,6 +291,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         notifBtn.addEventListener('click', function(e) {
             e.stopPropagation();
+            if (profileDropdown) profileDropdown.classList.remove('active');
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) navLinks.classList.remove('mobile-active');
             notifDropdown.classList.toggle('active');
             if (notifDropdown.classList.contains('active')) {
                 loadNotifications();
@@ -364,6 +367,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (profileBtn) {
         profileBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (notifDropdown) notifDropdown.classList.remove('active');
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) navLinks.classList.remove('mobile-active');
             profileDropdown.classList.toggle('active');
         });
     }
@@ -425,7 +431,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (menuToggle) {
         menuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            navLinks.classList.toggle('mobile-active');
+            if (profileDropdown) profileDropdown.classList.remove('active');
+            if (notifDropdown) notifDropdown.classList.remove('active');
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks) navLinks.classList.toggle('mobile-active');
         });
     }
 });

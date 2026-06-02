@@ -3,6 +3,7 @@ require_once "../includes/lang_helper.php";
 $pageTitle = __("institution_details");
 require "../includes/header.php";
 require "../config/DataBase.php";
+require_once "../includes/csrf.php";
 
 if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
     header("Location: institutions.php");
@@ -428,9 +429,13 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                 <?php endif; ?>
                 
                 <?php if ($isLoggedIn): ?>
-                    <a href="../save_school.php?id=<?php echo $id; ?>" class="btn btn-outline btn-full" style="display: block; text-align: center; border-radius: 30px; font-weight: 800; padding: 14px; text-decoration: none; border-width: 2px;">
+                    <form method="POST" action="../save_school.php">
+                        <?php echo csrf_input(); ?>
+                        <input type="hidden" name="id" value="<?php echo $id; ?>">
+                        <button type="submit" class="btn btn-outline btn-full" style="display: block; text-align: center; border-radius: 30px; font-weight: 800; padding: 14px; text-decoration: none; border-width: 2px;">
                         ❤ <?php echo __('save'); ?>
-                    </a>
+                        </button>
+                    </form>
                 <?php endif; ?>
             </div>
         </aside>

@@ -2,6 +2,7 @@
 $pageTitle = "Établissements";
 require "../includes/header.php";
 require "../config/DataBase.php";
+require_once "../includes/csrf.php";
 
 // Get metadata for filters with safety checks
 $villes = [];
@@ -362,6 +363,7 @@ let debounceTimer;
 
 const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
 let savedIds = <?php echo json_encode($savedIds); ?>;
+const csrfToken = <?php echo json_encode(csrf_token()); ?>;
 
 function doSearch() {
     const params = new URLSearchParams();

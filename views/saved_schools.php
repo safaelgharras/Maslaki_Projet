@@ -2,6 +2,7 @@
 $pageTitle = "Sauvegardés";
 require "../includes/header.php";
 require "../config/DataBase.php";
+require_once "../includes/csrf.php";
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
@@ -56,7 +57,11 @@ $schools = $stmt->fetchAll();
                         <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $s['min_average'] ?? '--'; ?></strong></span>
                         <div class="card-actions">
                             <a href="institution_detail.php?id=<?php echo $s['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>
-                            <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('<?php echo __('confirm_delete_school') ?? 'Supprimer cette école ?'; ?>');"><?php echo __('delete'); ?></a>
+                            <form method="POST" action="../remove_school.php" style="display:inline;" onsubmit="return confirm('<?php echo __('confirm_delete_school') ?? 'Supprimer cette école ?'; ?>');">
+                                <?php echo csrf_input(); ?>
+                                <input type="hidden" name="id" value="<?php echo $s['id']; ?>">
+                                <button type="submit" class="btn btn-danger"><?php echo __('delete'); ?></button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -65,16 +70,5 @@ $schools = $stmt->fetchAll();
     </div>
 
 <?php endif; ?>
-
-<?php require "../includes/footer.php"; ?>               if (document.querySelectorAll('.card').length === 0) {
-                    location.reload();
-                }
-            }, 300);
-        } else {
-            showToast('Erreur lors de la suppression', 'error');
-        }
-    });
-}
-</script>
 
 <?php require "../includes/footer.php"; ?>
