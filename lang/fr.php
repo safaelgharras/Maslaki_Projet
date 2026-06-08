@@ -258,4 +258,7 @@ return [
     'status_pending' => 'En attente',
     'status_confirmed' => 'Confirmé',
     'status_cancelled' => 'Annulé',
+    'platform_admin_card_users_title' => 'Gestion des Utilisateurs',
+    'platform_admin_card_users_desc' => 'Gérer les rôles et permissions des membres de la plateforme.',
+    'platform_admin_users_page_title' => 'Administration — Utilisateurs',
 ];

@@ -1,10 +1,11 @@
 <?php
 require_once '../includes/lang_helper.php';
-$pageTitle = __('platform_admin_dashboard_title');
-require '../includes/header.php';
 require '../config/DataBase.php';
 require_once '../includes/platform_admin.php';
 require_platform_admin($pdo);
+
+$pageTitle = __('platform_admin_dashboard_title');
+require '../includes/header.php';
 ?>
 
 <div class="dashboard-container">
@@ -36,6 +37,15 @@ require_platform_admin($pdo);
                     <div class="q-info">
                         <h3><?php echo __('platform_admin_card_notifications_title'); ?></h3>
                         <p><?php echo __('platform_admin_card_notifications_desc'); ?></p>
+                    </div>
+                    <span class="q-arrow">→</span>
+                </a>
+
+                <a href="admin_users_manage.php" class="quick-card" style="border-left: 4px solid #10b981;">
+                    <div class="q-icon">👥</div>
+                    <div class="q-info">
+                        <h3><?php echo __('platform_admin_card_users_title'); ?></h3>
+                        <p><?php echo __('platform_admin_card_users_desc'); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>

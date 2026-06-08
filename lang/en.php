@@ -268,4 +268,7 @@ return [
     'status_pending' => 'Pending',
     'status_confirmed' => 'Confirmed',
     'status_cancelled' => 'Cancelled',
+    'platform_admin_card_users_title' => 'User Management',
+    'platform_admin_card_users_desc' => 'Manage user roles and permissions on the platform.',
+    'platform_admin_users_page_title' => 'Admin — Users',
 ];

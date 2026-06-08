@@ -25,6 +25,10 @@ function platform_admin_role(PDO $pdo, int $userId): ?string
 
 function is_platform_admin(PDO $pdo): bool
 {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     if (!isset($_SESSION['user_id'])) {
         return false;
     }
@@ -36,13 +40,20 @@ function is_platform_admin(PDO $pdo): bool
  */
 function require_platform_admin(PDO $pdo): void
 {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     if (!isset($_SESSION['user_id'])) {
         header('Location: login.php');
         exit();
     }
     if (!is_platform_admin($pdo)) {
+        http_response_code(403);
+        $pageTitle = function_exists('__') ? __('platform_admin_nav') : 'Administration';
+        require __DIR__ . '/header.php';
         echo '<div class="container" style="margin-top:40px;"><div class="msg msg-error">'
-            . htmlspecialchars(__('platform_admin_access_denied'))
+            . htmlspecialchars(function_exists('__') ? __('platform_admin_access_denied') : 'Access denied.')
             . '</div></div>';
         require __DIR__ . '/footer.php';
         exit();

@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS admin_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- The current app grants platform-admin access through students.role.
+-- Example grant:
+-- UPDATE students SET role = 'admin' WHERE email = 'admin@example.com';
+ALTER TABLE students ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'student';
+
 -- Create User Requests/Suggestions Table
 CREATE TABLE IF NOT EXISTS user_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,

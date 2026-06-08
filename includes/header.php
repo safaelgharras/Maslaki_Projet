@@ -73,9 +73,6 @@ if (isset($_SESSION['user_id'])) {
                 <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/orientation_explore.php"><?php echo __('orientation'); ?></a></li>
-                <?php if (!empty($isPlatformAdmin)): ?>
-                    <li><a href="<?php echo $base; ?>views/admin_dashboard.php" class="nav-platform-admin"><?php echo __('platform_admin_nav'); ?></a></li>
-                <?php endif; ?>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent ai-btn-nav"><?php echo __('ai_orientation'); ?> 🤖</a></li>
                     <li class="notif-menu-item">
@@ -107,6 +104,12 @@ if (isset($_SESSION['user_id'])) {
                             <?php endif; ?>
                         </div>
                         <div class="profile-dropdown" id="profileDropdown">
+                            <?php if (!empty($isPlatformAdmin)): ?>
+                                <a href="<?php echo $base; ?>views/admin_dashboard.php" class="dropdown-link" style="color: var(--orange, #f97316); font-weight: 700;">
+                                    <span class="dropdown-icon">🛡️</span> <?php echo __('platform_admin_nav'); ?>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            <?php endif; ?>
                             <a href="<?php echo $base; ?>views/dashboard.php" class="dropdown-link">
                                 <span class="dropdown-icon">👤</span> <?php echo __('profile'); ?>
                             </a>
@@ -154,6 +157,20 @@ if (isset($_SESSION['user_id'])) {
 <style>
 .notif-see-all { display: block; text-align: center; padding: 12px; font-size: 0.85rem; font-weight: 700; color: var(--primary); background: var(--bg-light); text-decoration: none; border-top: 1px solid var(--border-color); transition: var(--transition); }
 .notif-see-all:hover { background: var(--primary); color: #fff; }
+.nav-platform-admin {
+    background: rgba(249, 115, 22, 0.1);
+    color: var(--orange, #f97316) !important;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 8px;
+    padding: 6px 12px !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease;
+}
+.nav-platform-admin:hover {
+    background: var(--orange, #f97316);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+}
 
 /* Branding Styles */
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.2s ease; }

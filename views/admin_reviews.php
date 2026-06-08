@@ -1,7 +1,5 @@
 <?php
 require_once "../includes/lang_helper.php";
-$pageTitle = __("platform_admin_reviews_page_title");
-require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
 require_once "../includes/csrf.php";
@@ -35,11 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit();
 }
 
+$pageTitle = __("platform_admin_reviews_page_title");
+require "../includes/header.php";
+
 // Get all pending reviews
 $pendingSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
                FROM reviews 
-               JOIN students ON reviews.student_id = students.id
-               JOIN institutions ON reviews.institution_id = institutions.id
+               LEFT JOIN students ON reviews.student_id = students.id
+               LEFT JOIN institutions ON reviews.institution_id = institutions.id
                WHERE reviews.status = 'pending'
                ORDER BY reviews.created_at DESC";
 $pendingStmt = $pdo->query($pendingSql);
@@ -48,8 +49,8 @@ $pendingReviews = $pendingStmt->fetchAll();
 // Get all approved reviews
 $approvedSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
                 FROM reviews 
-                JOIN students ON reviews.student_id = students.id
-                JOIN institutions ON reviews.institution_id = institutions.id
+                LEFT JOIN students ON reviews.student_id = students.id
+                LEFT JOIN institutions ON reviews.institution_id = institutions.id
                 WHERE reviews.status = 'approved'
                 ORDER BY reviews.created_at DESC
                 LIMIT 20";
@@ -61,6 +62,9 @@ $approvedReviews = $approvedStmt->fetchAll();
 
 <?php if (isset($_GET['success'])): ?>
     <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+<?php endif; ?>
+<?php if (isset($_GET['error'])): ?>
+    <div class="msg msg-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
 <?php endif; ?>
 
 <!-- Pending Reviews -->
@@ -77,8 +81,8 @@ $approvedReviews = $approvedStmt->fetchAll();
         <div class="review-item" style="border-left:4px solid var(--orange);">
             <div class="review-header">
                 <div>
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"]); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"]); ?></span>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprime"); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"] ?? "Etablissement supprime"); ?></span>
                 </div>
                 <span class="review-date"><?php echo date("d/m/Y H:i", strtotime($rev["created_at"])); ?></span>
             </div>
@@ -115,8 +119,8 @@ $approvedReviews = $approvedStmt->fetchAll();
         <div class="review-item">
             <div class="review-header">
                 <div>
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"]); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"]); ?></span>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprime"); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"] ?? "Etablissement supprime"); ?></span>
                 </div>
                 <span class="review-date"><?php echo date("d/m/Y", strtotime($rev["created_at"])); ?></span>
             </div>

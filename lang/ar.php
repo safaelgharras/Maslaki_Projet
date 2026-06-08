@@ -268,4 +268,7 @@ return [
     'status_pending' => 'قيد الانتظار',
     'status_confirmed' => 'مؤكد',
     'status_cancelled' => 'ملغى',
+    'platform_admin_card_users_title' => 'إدارة المستخدمين',
+    'platform_admin_card_users_desc' => 'إدارة أدوار وصلاحيات أعضاء المنصة.',
+    'platform_admin_users_page_title' => 'الإدارة — المستخدمين',
 ];
