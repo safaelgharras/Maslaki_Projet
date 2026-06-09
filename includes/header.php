@@ -28,7 +28,9 @@ if (isset($_SESSION['user_id'])) {
         $profileStmt = $pdo->prepare("SELECT role, name, avatar FROM students WHERE id = ? LIMIT 1");
         $profileStmt->execute([$userId]);
         $profileRow = $profileStmt->fetch(PDO::FETCH_ASSOC);
-        $isPlatformAdmin = ($profileRow['role'] ?? '') === 'admin';
+        $userRole = $profileRow['role'] ?? 'student';
+        $isPlatformAdmin = in_array($userRole, ['admin', 'superadmin'], true);
+        $isSuperAdminNav  = ($userRole === 'superadmin');
 
         // Prefer session avatar (set at login), fall back to DB value
         $navAvatar = $_SESSION['user_avatar'] ?? $profileRow['avatar'] ?? '';
@@ -105,8 +107,9 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <div class="profile-dropdown" id="profileDropdown">
                             <?php if (!empty($isPlatformAdmin)): ?>
-                                <a href="<?php echo $base; ?>views/admin_dashboard.php" class="dropdown-link" style="color: var(--orange, #f97316); font-weight: 700;">
-                                    <span class="dropdown-icon">🛡️</span> <?php echo __('platform_admin_nav'); ?>
+                                <a href="<?php echo $base; ?>views/admin_dashboard.php" class="dropdown-link" style="color: <?php echo $isSuperAdminNav ? '#92400e' : 'var(--orange, #f97316)'; ?>; font-weight: 700; background: <?php echo $isSuperAdminNav ? 'linear-gradient(135deg,#fef3c7,#fde68a)' : 'rgba(249,115,22,0.06)'; ?>; border-radius: 10px; margin: 4px 8px;">
+                                    <span class="dropdown-icon"><?php echo $isSuperAdminNav ? '&#x1F451;' : '&#x1F6E1;&#xFE0F;'; ?></span>
+                                    <?php echo $isSuperAdminNav ? 'Superadmin' : __('platform_admin_nav'); ?>
                                 </a>
                                 <div class="dropdown-divider"></div>
                             <?php endif; ?>

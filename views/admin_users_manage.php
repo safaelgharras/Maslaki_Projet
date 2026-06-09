@@ -3,12 +3,20 @@ require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
 require_once "../includes/csrf.php";
-require_platform_admin($pdo);
+
+// Only the superadmin can manage user roles
+require_superadmin($pdo);
 
 $currentUserId = (int)$_SESSION['user_id'];
 
 // Handle promoting/demoting actions
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Re-check superadmin on every POST (double-lock)
+    if (!is_superadmin($pdo)) {
+        header("Location: admin_users_manage.php?error=Action%20non%20autorisee");
+        exit();
+    }
+
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
         header("Location: admin_users_manage.php?error=Requete%20invalide");
         exit();
@@ -22,11 +30,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
+    // Never allow demoting another superadmin
+    $targetRole = platform_admin_role($pdo, $targetUserId);
+    if ($targetRole === 'superadmin') {
+        header("Location: admin_users_manage.php?error=Impossible%20de%20modifier%20le%20role%20d%27un%20superadmin");
+        exit();
+    }
+
     if ($targetUserId > 0) {
         if ($action === 'promote') {
             $stmt = $pdo->prepare("UPDATE students SET role = 'admin' WHERE id = ?");
             $stmt->execute([$targetUserId]);
-            header("Location: admin_users_manage.php?success=Utilisateur%20promu%20au%20rang%20d%27admin");
+            header("Location: admin_users_manage.php?success=Utilisateur%20promu%20au%20rang%20d%27administrateur");
             exit();
         } elseif ($action === 'demote') {
             $stmt = $pdo->prepare("UPDATE students SET role = 'student' WHERE id = ?");
@@ -61,7 +76,8 @@ if ($roleFilter !== '') {
     $params[] = $roleFilter;
 }
 
-$sql .= " ORDER BY (role = 'admin') DESC, name ASC";
+// Superadmin first, then admins, then students
+$sql .= " ORDER BY FIELD(role, 'superadmin', 'admin', 'student'), name ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -103,6 +119,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <option value="">Tous les rôles</option>
                 <option value="student" <?php echo $roleFilter === 'student' ? 'selected' : ''; ?>>Étudiant (student)</option>
                 <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>>Administrateur (admin)</option>
+                <option value="superadmin" <?php echo $roleFilter === 'superadmin' ? 'selected' : ''; ?>>Superadmin 👑</option>
             </select>
         </div>
         <div style="display: flex; gap: 10px;">
@@ -129,46 +146,46 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-light); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--primary);">
                             👤
                         </div>
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <h3 style="margin: 0; font-size: 1.05rem; color: var(--text-dark);"><?php echo htmlspecialchars($user['name'] ?? 'Inconnu'); ?></h3>
-                                <?php if ($user['role'] === 'admin'): ?>
-                                    <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #bae6fd;">Admin</span>
-                                <?php else: ?>
-                                    <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">Étudiant</span>
-                                <?php endif; ?>
-                                <?php if ($isSelf): ?>
-                                    <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a;">Vous</span>
-                                <?php endif; ?>
-                            </div>
-                            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);"><?php echo htmlspecialchars($user['email']); ?></p>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 1.05rem; color: var(--text-dark);"><?php echo htmlspecialchars($user['name'] ?? 'Inconnu'); ?></h3>
+                            <?php if ($user['role'] === 'superadmin'): ?>
+                                <span style="background: linear-gradient(135deg,#fef3c7,#fde68a); color: #92400e; font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; border: 1px solid #fbbf24;">👑 Superadmin</span>
+                            <?php elseif ($user['role'] === 'admin'): ?>
+                                <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #bae6fd;">🛡️ Admin</span>
+                            <?php else: ?>
+                                <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">👤 Étudiant</span>
+                            <?php endif; ?>
+                            <?php if ($isSelf): ?>
+                                <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a;">Vous</span>
+                            <?php endif; ?>
+                            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted); width: 100%;"><?php echo htmlspecialchars($user['email']); ?></p>
                             <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); font-style: italic;">Inscrit le : <?php echo date("d/m/Y", strtotime($user['created_at'])); ?></p>
                         </div>
                     </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <?php if ($isSelf): ?>
-                            <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Modification impossible (compte connecté)</span>
-                        <?php else: ?>
-                            <?php if ($user['role'] === 'student'): ?>
-                                <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Promouvoir cet utilisateur en tant qu\'administrateur ?');">
-                                    <?php echo csrf_input(); ?>
-                                    <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                                    <input type="hidden" name="action" value="promote">
-                                    <button type="submit" class="btn btn-primary" style="background: #10b981; border-color: #10b981; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
-                                        Promouvoir Admin 🛡️
-                                    </button>
-                                </form>
-                            <?php elseif ($user['role'] === 'admin'): ?>
-                                <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Rétrograder cet administrateur au rôle d\'étudiant ?');">
-                                    <?php echo csrf_input(); ?>
-                                    <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                                    <input type="hidden" name="action" value="demote">
-                                    <button type="submit" class="btn btn-danger" style="background: #ef4444; border-color: #ef4444; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
-                                        Rétrograder en Étudiant 👤
-                                    </button>
-                                </form>
-                            <?php endif; ?>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Compte connecté</span>
+                        <?php elseif ($user['role'] === 'superadmin'): ?>
+                            <span style="font-size: 0.82rem; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; padding: 6px 14px; border-radius: 10px; font-weight: 600;">👑 Compte protégé</span>
+                        <?php elseif ($user['role'] === 'student'): ?>
+                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Promouvoir cet utilisateur en tant qu\'administrateur ?');">
+                                <?php echo csrf_input(); ?>
+                                <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                <input type="hidden" name="action" value="promote">
+                                <button type="submit" class="btn btn-primary" style="background: #10b981; border-color: #10b981; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
+                                    Promouvoir Admin 🛡️
+                                </button>
+                            </form>
+                        <?php elseif ($user['role'] === 'admin'): ?>
+                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Rétrograder cet administrateur au rôle d\'étudiant ?');">
+                                <?php echo csrf_input(); ?>
+                                <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                <input type="hidden" name="action" value="demote">
+                                <button type="submit" class="btn btn-danger" style="background: #ef4444; border-color: #ef4444; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
+                                    Rétrograder en Étudiant 👤
+                                </button>
+                            </form>
                         <?php endif; ?>
                     </div>
                 </div>

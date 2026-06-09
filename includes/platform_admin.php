@@ -1,59 +1,120 @@
 <?php
 /**
- * Platform organizer (staff) — users who run Maslaki, not regular students.
- * Grant access with: UPDATE students SET role = 'admin' WHERE id = ...
- * @see database/notifications_setup.sql (column students.role)
+ * Platform admin / superadmin middleware.
+ *
+ * Role hierarchy (stored in students.role):
+ *   'student'    – regular user, no admin access
+ *   'admin'      – staff: can moderate reviews & send notifications, but CANNOT manage roles
+ *   'superadmin' – platform owner: all admin powers + role management
+ *
+ * To promote someone: UPDATE students SET role = 'superadmin' WHERE id = ...;
  */
 
+// ──────────────────────────────────────────────
+// Low-level helpers
+// ──────────────────────────────────────────────
+
 /**
- * @return string|null role string or null if missing/error
+ * Return the role string of a user, or null on error/missing.
  */
 function platform_admin_role(PDO $pdo, int $userId): ?string
 {
     try {
-        $stmt = $pdo->prepare("SELECT role FROM students WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT role FROM students WHERE id = ? LIMIT 1");
         $stmt->execute([$userId]);
         $role = $stmt->fetchColumn();
-        if ($role === false || $role === null) {
-            return null;
-        }
-        return (string) $role;
+        return ($role === false || $role === null) ? null : (string) $role;
     } catch (Exception $e) {
         return null;
     }
 }
 
+/**
+ * Returns true if the logged-in user has AT LEAST 'admin' privileges
+ * (i.e. role is 'admin' OR 'superadmin').
+ */
 function is_platform_admin(PDO $pdo): bool
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
-    if (!isset($_SESSION['user_id'])) {
-        return false;
-    }
-    return platform_admin_role($pdo, (int) $_SESSION['user_id']) === 'admin';
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (!isset($_SESSION['user_id'])) return false;
+    $role = platform_admin_role($pdo, (int) $_SESSION['user_id']);
+    return in_array($role, ['admin', 'superadmin'], true);
 }
 
 /**
- * Require login + role admin. Otherwise redirect to login or show access denied.
+ * Returns true ONLY for the superadmin (platform owner).
+ */
+function is_superadmin(PDO $pdo): bool
+{
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (!isset($_SESSION['user_id'])) return false;
+    return platform_admin_role($pdo, (int) $_SESSION['user_id']) === 'superadmin';
+}
+
+// ──────────────────────────────────────────────
+// Access guards (redirect / 403 on failure)
+// ──────────────────────────────────────────────
+
+/**
+ * Require AT LEAST admin role. Used by reviews, notifications, dashboard.
  */
 function require_platform_admin(PDO $pdo): void
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    if (session_status() === PHP_SESSION_NONE) session_start();
 
     if (!isset($_SESSION['user_id'])) {
         header('Location: login.php');
         exit();
     }
+
     if (!is_platform_admin($pdo)) {
         http_response_code(403);
         $pageTitle = function_exists('__') ? __('platform_admin_nav') : 'Administration';
         require __DIR__ . '/header.php';
-        echo '<div class="container" style="margin-top:40px;"><div class="msg msg-error">'
-            . htmlspecialchars(function_exists('__') ? __('platform_admin_access_denied') : 'Access denied.')
+        echo '<div class="main-content"><div class="msg msg-error" style="margin-top:40px;">'
+            . htmlspecialchars(function_exists('__') ? __('platform_admin_access_denied') : 'Accès refusé. Cette page est réservée aux administrateurs.')
+            . '</div></div>';
+        require __DIR__ . '/footer.php';
+        exit();
+    }
+}
+
+/**
+ * Require superadmin role. Used by the user role-management page only.
+ */
+function require_superadmin(PDO $pdo): void
+{
+    if (session_status() === PHP_SESSION_NONE) session_start();
+
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: login.php');
+        exit();
+    }
+
+    // If they are any kind of admin but NOT superadmin → show specific denial
+    if (is_platform_admin($pdo) && !is_superadmin($pdo)) {
+        http_response_code(403);
+        $pageTitle = 'Gestion des rôles';
+        require __DIR__ . '/header.php';
+        echo '<div class="main-content"><div style="max-width:600px;margin:60px auto;padding:0 20px;">'
+            . '<div class="msg msg-error" style="border-radius:16px;padding:25px 30px;">'
+            . '🔒 <strong>Accès restreint.</strong><br><br>'
+            . 'La gestion des rôles est réservée exclusivement au <strong>Superadmin</strong> (propriétaire de la plateforme).<br>'
+            . 'Vous avez un rôle <em>Admin</em>, mais vous ne pouvez pas modifier les rôles des autres utilisateurs.'
+            . '</div>'
+            . '<div style="text-align:center;margin-top:20px;"><a href="admin_dashboard.php" class="btn btn-primary">← Retour au tableau de bord</a></div>'
+            . '</div></div>';
+        require __DIR__ . '/footer.php';
+        exit();
+    }
+
+    // Not an admin at all → access denied
+    if (!is_superadmin($pdo)) {
+        http_response_code(403);
+        $pageTitle = function_exists('__') ? __('platform_admin_nav') : 'Administration';
+        require __DIR__ . '/header.php';
+        echo '<div class="main-content"><div class="msg msg-error" style="margin-top:40px;">'
+            . htmlspecialchars(function_exists('__') ? __('platform_admin_access_denied') : 'Accès refusé.')
             . '</div></div>';
         require __DIR__ . '/footer.php';
         exit();
