@@ -196,3 +196,62 @@
 ---
 
 *Last updated: 2026-06-09*
+│   ├── helpers.php              ← NEW: Shared utilities
+│   ├── csrf.php                 ← CSRF token generation/validation
+│   ├── lang_helper.php          ← Localization helpers
+│   ├── translations.php         ← Translation strings
+│   └── platform_admin.php       ← Admin role checks
+│
+├── lang/
+│   └── [Translation files]
+│
+├── database/
+│   ├── maslaki.sql              ← Base schema
+│   ├── maslaki_full_database.sql ← Complete DB dump
+│   ├── seed_deadlines.sql       ← Deadline seed data
+│   ├── seed_real_contests.sql   ← Contest seed data
+│   ├── notifications_setup.sql  ← Notification tables
+│   ├── [30+ migration files]
+│   └── update_institutions_info.php
+│
+├── admin/
+│   └── admin_migration.sql      ← Admin table setup
+│
+├── models/
+│   └── [Future model classes]
+│
+├── scratch/
+│   └── [Development/testing files]
+│
+└── md/
+    ├── structure.md             ← This file
+    ├── progress.md              ← Feature tracker
+    └── workflow.md              ← Development workflow
+```
+
+---
+
+## 🚀 Setup Instructions
+
+1. **Clone/copy project** to web server directory
+2. **Copy `.env.example` to `.env`** and fill in:
+   - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+3. **Import database** — `database/maslaki_full_database.sql` in phpMyAdmin
+4. **Run migrations** — Visit `migrate.php` if needed
+5. **Set permissions** — Ensure `.env` is not web-accessible (ideally outside document root)
+6. **Configure OAuth** — Set redirect URI in Google Cloud Console
+
+---
+
+## 📦 Dependencies
+
+- PHP 7.4+ (8.0+ recommended)
+- MySQL 5.7+ / MariaDB 10.3+
+- PDO extension
+- cURL extension (for Google OAuth)
+- Apache/Nginx with mod_rewrite
+
+---
+
+*Last updated: 2026-06-02 — Security hardening complete*
