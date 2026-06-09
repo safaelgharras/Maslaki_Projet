@@ -12,8 +12,8 @@ Maslaki-projet/
 ├── register_process.php              ← POST: register new student
 ├── google_callback.php               ← Google OAuth 2.0 handler
 ├── ai_process.php                    ← AI orientation results page
-├── submit_review.php                 ← POST: submit school review
-├── process_appointment.php           ← POST: book an appointment
+├── submit_review.php                 ← POST: submit school review (CSRF-protected)
+├── process_appointment.php           ← POST: create or delete appointment (CSRF-protected)
 ├── migrate.php                       ← Manual migration runner (dev only)
 │
 │   ── Schools & Saved ─────────────────────────────────────────────────────────
@@ -67,14 +67,16 @@ Maslaki-projet/
 │   │   ── Student ───────────────────────────────────────────────────────────
 │   ├── dashboard.php                 ← User dashboard: upcoming contests,
 │   │                                     saved schools, notifications preview
-│   ├── saved_schools.php             ← Saved school cards + remove
+│   ├── saved_schools.php             ← Saved school cards + remove (POST+CSRF)
 │   ├── notifications.php             ← Full notification list
-│   ├── appointments.php              ← Appointment history/booking
+│   ├── appointments.php              ← Appointment booking + list; delete via
+│   │                                     POST form (CSRF-protected)
 │   │
 │   │   ── Institutions ─────────────────────────────────────────────────────
 │   ├── institutions.php              ← Filterable school card grid (AJAX)
 │   ├── institution_detail.php        ← Full school page: info, filieres,
-│   │                                     reviews, sub-schools, bac requirements
+│   │                                     reviews (star rating UI), sub-schools,
+│   │                                     bac requirements
 │   │
 │   │   ── Orientation ─────────────────────────────────────────────────────
 │   ├── ai_form.php                   ← AI orientation input form
@@ -86,7 +88,8 @@ Maslaki-projet/
 │   ├── contests.php                  ← Contest list with deadlines
 │   │
 │   │   ── Admin ───────────────────────────────────────────────────────────
-│   ├── admin_reviews.php             ← Approve/reject pending reviews
+│   ├── admin_reviews.php             ← Approve/reject pending reviews (shows
+│   │                                     star ratings); POST+CSRF only
 │   ├── admin_send_notification.php   ← Broadcast notifications
 │   └── admin_dashboard.php           ← Platform management overview
 │
@@ -98,41 +101,66 @@ Maslaki-projet/
 │   ├── js/
 │   │   └── script.js                 ← Client-side logic
 │   └── images/
-│       ├── institutions/             ← School logo images (107 files:
-│       │                                 .png, .jpg, .webp, .WEBP, .PNG)
+│       ├── Institutions/             ← School logo images (~100 files,
+│       │                                 mixed case: .png .jpg .webp .WEBP .PNG)
+│       ├── Maquette/                 ← Design mockup assets
 │       ├── logo.png
 │       └── students_illustration.png
 │
 │
 ├── lang/
-│   └── [Locale files used by lang_helper.php]
+│   ├── fr.php                        ← French translations (default)
+│   ├── ar.php                        ← Arabic translations
+│   └── en.php                        ← English translations
 │
 │
 ├── database/
+│   │   ── Core ──────────────────────────────────────────────────────────────
 │   ├── maslaki.sql                   ← Base schema
 │   ├── maslaki_full_database.sql     ← Full DB dump (schema + seed data)
-│   ├── schema_update.sql             ← Core schema migrations
-│   ├── features_update.sql           ← Feature additions
-│   ├── notifications_setup.sql       ← Notification tables
+│   │
+│   │   ── Schema Migrations ─────────────────────────────────────────────────
+│   ├── schema_update.sql             ← Core schema additions
+│   ├── features_update.sql           ← Feature column additions
+│   ├── fix_missing_tables.sql        ← Adds tables that were absent
+│   ├── fix_missing_images.sql        ← Image path corrections
+│   ├── fix_seuil.sql                 ← Admission threshold fixes
+│   ├── add_review_rating.sql         ← Adds rating column to reviews table
+│   ├── add_superadmin_role.sql       ← Adds superadmin role to students table
+│   ├── ensure_translations_columns.sql ← Guarantees _ar/_en columns exist
+│   ├── map_villes.sql                ← Maps institutions to villes table
+│   ├── reorganize_domains.sql        ← Domain structure migration
+│   ├── setup_logic_relationships.sql ← FK and pivot table setup
+│   ├── cleanup_duplicates.sql        ← Deduplication script
+│   │
+│   │   ── Seed Data ────────────────────────────────────────────────────────
 │   ├── seed_deadlines.sql            ← Deadline data
 │   ├── seed_real_contests.sql        ← Contest data
+│   ├── fill_info.sql                 ← Fills missing institution fields
 │   ├── populate_orientation_data.sql ← Category/domain/filiere data
+│   ├── notifications_setup.sql       ← Notification tables + initial data
+│   │
+│   │   ── Translations ─────────────────────────────────────────────────────
 │   ├── bac_localization.sql          ← Bac type translations
 │   ├── english_localization.sql      ← English translation entries
-│   ├── translate_*.sql               ← Per-table translation patches
-│   ├── fix_*.sql                     ← Hotfix migrations
-│   ├── reorganize_domains.sql        ← Domain structure migration
-│   └── update_institutions_info.php  ← Programmatic data updater
+│   ├── localization_update.sql       ← General localization patches
+│   ├── translate_descriptions.sql    ← Institution description translations
+│   ├── translate_filieres.sql        ← Filiere name translations
+│   ├── translate_institution_details.sql ← Detail field translations
+│   ├── translate_notifications.sql   ← Notification message translations
+│   ├── update_translations_notif_contests.sql ← Contest/notif translation updates
+│   │
+│   └── update_institutions_info.php  ← Programmatic data updater script
 │
 │
 ├── admin/
 │   └── admin_migration.sql           ← Admin role table + initial staff setup
 │
 ├── models/
-│   └── [Future: ORM / model classes]
+│   └── (empty — reserved for future model classes)
 │
-├── scratch/
-│   └── [Development & debugging scripts — not for production]
+├── Rapport de PFE/
+│   └── (project report documents)
 │
 └── md/
     ├── structure.md                  ← This file
@@ -179,7 +207,7 @@ $rows = localize_rows($rows, ['nom']);
 **Image resolution**
 ```php
 $src = resolve_institution_image($inst['name'], $inst['image'] ?? null);
-// Searches assets/images/ and assets/images/institutions/
+// Searches assets/images/ and assets/images/Institutions/
 // Falls back to default_school.jpg
 ```
 

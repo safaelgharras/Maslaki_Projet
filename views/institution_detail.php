@@ -353,30 +353,104 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                 </div>
             </section>
 
-            <section class="info-card">
-                <h2><?php echo __('student_reviews'); ?></h2>
+            <section class="info-card reviews-section" id="reviews">
+                <div class="reviews-section-header">
+                    <h2><?php echo __('student_reviews'); ?></h2>
+                    <span class="reviews-count-badge"><?php echo count($reviews); ?> <?php echo count($reviews) === 1 ? 'avis' : 'avis'; ?></span>
+                </div>
+
+                <?php if (isset($_GET['review_success'])): ?>
+                    <div class="review-flash review-flash-success">
+                        ✅ Votre avis a été envoyé et sera publié après validation.
+                    </div>
+                <?php elseif (isset($_GET['review_error'])): ?>
+                    <div class="review-flash review-flash-error">
+                        ⚠️ <?php echo htmlspecialchars($_GET['review_error']); ?>
+                    </div>
+                <?php endif; ?>
+
                 <?php if ($isLoggedIn): ?>
-                    <div class="review-form">
-                        <form method="POST" action="../submit_review.php">
-                            <input type="hidden" name="institution_id" value="<?php echo $id; ?>">
-                            <textarea name="content" placeholder="<?php echo __('share_review'); ?>" required></textarea>
-                            <button type="submit" class="btn btn-primary"><?php echo __('submit_review'); ?></button>
-                        </form>
+                    <div class="review-compose">
+                        <div class="compose-avatar">
+                            <?php
+                                $authorInitial = strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1));
+                            ?>
+                            <span><?php echo htmlspecialchars($authorInitial); ?></span>
+                        </div>
+                        <div class="compose-body">
+                            <form method="POST" action="../submit_review.php">
+                                <?php echo csrf_input(); ?>
+                                <input type="hidden" name="institution_id" value="<?php echo $id; ?>">
+                                <div class="compose-rating" aria-label="Note">
+                                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                                        <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>">
+                                        <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> étoiles">★</label>
+                                    <?php endfor; ?>
+                                </div>
+                                <textarea name="content" class="compose-textarea" placeholder="<?php echo htmlspecialchars(__('share_review')); ?>" required rows="3"></textarea>
+                                <div class="compose-footer">
+                                    <span class="compose-hint">Votre avis sera publié après modération.</span>
+                                    <button type="submit" class="btn-submit-review">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                        <?php echo __('submit_review'); ?>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 <?php else: ?>
-                    <p class="login-msg"><?php echo __('login_to_review'); ?></p>
+                    <div class="review-login-cta">
+                        <span>💬</span>
+                        <p><?php echo __('login_to_review'); ?></p>
+                        <a href="login.php" class="btn btn-primary btn-sm"><?php echo __('login'); ?></a>
+                    </div>
                 <?php endif; ?>
 
                 <div class="reviews-list">
-                    <?php foreach($reviews as $rev): ?>
-                        <div class="review-item">
-                            <div class="rev-head">
-                                <strong><?php echo htmlspecialchars($rev['author_name']); ?></strong>
-                                <span><?php echo date('d/m/Y', strtotime($rev['created_at'])); ?></span>
-                            </div>
-                            <p><?php echo htmlspecialchars($rev['content']); ?></p>
+                    <?php if (empty($reviews)): ?>
+                        <div class="reviews-empty">
+                            <div class="reviews-empty-icon">🎓</div>
+                            <p>Aucun avis pour cet établissement pour l'instant.</p>
+                            <span>Soyez le premier à partager votre expérience !</span>
                         </div>
-                    <?php endforeach; ?>
+                    <?php else: ?>
+                        <?php foreach($reviews as $rev):
+                            $initials = strtoupper(substr($rev['author_name'], 0, 1));
+                            $rating   = isset($rev['rating']) ? (int)$rev['rating'] : 0;
+                            $daysAgo  = (int)floor((time() - strtotime($rev['created_at'])) / 86400);
+                            if ($daysAgo === 0)      $timeLabel = "Aujourd'hui";
+                            elseif ($daysAgo === 1)  $timeLabel = "Hier";
+                            elseif ($daysAgo < 30)   $timeLabel = "Il y a {$daysAgo} jours";
+                            elseif ($daysAgo < 365)  $timeLabel = "Il y a " . floor($daysAgo / 30) . " mois";
+                            else                     $timeLabel = date('d/m/Y', strtotime($rev['created_at']));
+                        ?>
+                            <div class="review-card">
+                                <div class="review-card-avatar">
+                                    <span><?php echo htmlspecialchars($initials); ?></span>
+                                </div>
+                                <div class="review-card-body">
+                                    <div class="review-card-meta">
+                                        <span class="review-card-author"><?php echo htmlspecialchars($rev['author_name']); ?></span>
+                                        <?php if ($rating > 0): ?>
+                                            <span class="review-card-stars" aria-label="<?php echo $rating; ?> étoiles">
+                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                    <span class="<?php echo $i <= $rating ? 'star-filled' : 'star-empty'; ?>">★</span>
+                                                <?php endfor; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <span class="review-card-time"><?php echo $timeLabel; ?></span>
+                                    </div>
+                                    <p class="review-card-text"><?php echo nl2br(htmlspecialchars($rev['content'])); ?></p>
+                                    <div class="review-card-actions">
+                                        <button class="review-helpful-btn" aria-label="Utile">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                            Utile
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </section>
         </div>
@@ -524,6 +598,273 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
 .btn-accent:hover { background: #ea580c; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
 .btn-outline { border: 1.5px solid #fff; background: transparent; color: #fff; transition: var(--transition); }
 .btn-outline:hover { background: #fff; color: var(--primary); transform: translateY(-2px); }
+
+/* ── Reviews Section ─────────────────────────────────────────────────────── */
+#reviews { scroll-margin-top: 90px; } /* offset for sticky navbar */
+.reviews-section { padding: 30px; }
+
+.reviews-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+}
+.reviews-section-header h2 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+.reviews-count-badge {
+    background: rgba(var(--primary-rgb), 0.08);
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+}
+
+/* Compose box */
+.review-compose {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: #f8fafc;
+    border: 1.5px solid var(--border-color);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 28px;
+    transition: border-color 0.2s;
+}
+.review-compose:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.06);
+}
+.compose-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #3b5bdb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+}
+.compose-body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+/* Star rating widget */
+.compose-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 3px;
+    width: fit-content;
+}
+.compose-rating input { display: none; }
+.compose-rating label {
+    font-size: 1.5rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.15s;
+    line-height: 1;
+}
+/* When hovering: fill hovered star and all stars to its right (= higher values in row-reverse) */
+.compose-rating label:hover,
+.compose-rating label:hover ~ label {
+    color: #f59e0b;
+}
+/* When a radio is checked: fill it and all its preceding siblings (higher values)
+   In row-reverse those are visually to the left (higher numbers = left = filled) */
+.compose-rating input:checked ~ label {
+    color: #f59e0b;
+}
+
+.compose-textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 0.97rem;
+    color: var(--text-dark);
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    line-height: 1.6;
+}
+.compose-textarea::placeholder { color: var(--text-muted); }
+
+.compose-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+.compose-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+.btn-submit-review {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+.btn-submit-review:hover {
+    background: #1e3a8a;
+    transform: translateY(-1px);
+}
+
+/* Login CTA */
+.review-login-cta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f8fafc;
+    border: 1.5px dashed var(--border-color);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+.review-login-cta span { font-size: 1.5rem; }
+.review-login-cta p { flex: 1; margin: 0; }
+.btn-sm { padding: 8px 18px; font-size: 0.85rem; font-weight: 700; border-radius: 10px; }
+
+/* Review cards */
+.reviews-list { display: flex; flex-direction: column; gap: 0; }
+
+.review-card {
+    display: flex;
+    gap: 14px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
+    animation: fadeIn 0.3s ease;
+}
+.review-card:last-child { border-bottom: none; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.review-card-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+}
+/* Rotate colours per avatar */
+.review-card:nth-child(2n)  .review-card-avatar { background: linear-gradient(135deg, var(--primary), #3b5bdb); }
+.review-card:nth-child(3n)  .review-card-avatar { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+.review-card:nth-child(4n)  .review-card-avatar { background: linear-gradient(135deg, #10b981, #0891b2); }
+
+.review-card-body { flex: 1; }
+
+.review-card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.review-card-author {
+    font-weight: 800;
+    font-size: 0.97rem;
+    color: var(--primary-dark);
+}
+.review-card-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* Stars */
+.review-card-stars { display: inline-flex; gap: 1px; }
+.star-filled { color: #f59e0b; font-size: 0.95rem; }
+.star-empty  { color: #d1d5db; font-size: 0.95rem; }
+
+.review-card-text {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-dark);
+    margin: 0 0 10px;
+}
+
+.review-card-actions { display: flex; gap: 12px; }
+.review-helpful-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.review-helpful-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.04);
+}
+
+/* Flash messages */
+.review-flash {
+    padding: 13px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+.review-flash-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.review-flash-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Empty state */
+.reviews-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+}
+.reviews-empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.6; }
+.reviews-empty p { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--text-dark); }
+.reviews-empty span { font-size: 0.88rem; }
+
+/* Dark mode */
+[data-theme="dark"] .review-compose,
+[data-theme="dark"] .review-login-cta {
+    background: #0f172a;
+    border-color: #242f49;
+}
+[data-theme="dark"] .review-card { border-color: #242f49; }
+[data-theme="dark"] .review-card-author { color: #e2e8f0; }
+[data-theme="dark"] .review-card-text { color: #cbd5e1; }
+[data-theme="dark"] .compose-textarea { color: #e2e8f0; }
+
+@media (max-width: 640px) {
+    .compose-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .review-card-time { margin-left: 0; }
+}
+/* ────────────────────────────────────────────────────────────────────────── */
 
 [data-theme="dark"] .info-card { background: #161e31; border-color: #242f49; }
 [data-theme="dark"] .filiere-item { border-color: #242f49; background: #0f172a; }

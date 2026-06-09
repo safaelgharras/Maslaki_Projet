@@ -77,12 +77,19 @@ $approvedReviews = $approvedStmt->fetchAll();
         Aucun avis en attente de validation.
     </div>
 <?php else: ?>
-    <?php foreach($pendingReviews as $rev): ?>
+    <?php foreach($pendingReviews as $rev):
+        $rating = isset($rev['rating']) ? (int)$rev['rating'] : 0;
+    ?>
         <div class="review-item" style="border-left:4px solid var(--orange);">
             <div class="review-header">
-                <div>
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprime"); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"] ?? "Etablissement supprime"); ?></span>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprimé"); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? "Établissement supprimé"); ?></span>
+                    <?php if ($rating > 0): ?>
+                        <span style="color:#f59e0b; letter-spacing:1px;">
+                            <?php for ($i = 1; $i <= 5; $i++) echo $i <= $rating ? '★' : '☆'; ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
                 <span class="review-date"><?php echo date("d/m/Y H:i", strtotime($rev["created_at"])); ?></span>
             </div>
@@ -115,12 +122,19 @@ $approvedReviews = $approvedStmt->fetchAll();
 <?php if (count($approvedReviews) == 0): ?>
     <p style="color:var(--text-muted); font-size:0.85rem;">Aucun avis approuvé.</p>
 <?php else: ?>
-    <?php foreach($approvedReviews as $rev): ?>
+    <?php foreach($approvedReviews as $rev):
+        $rating = isset($rev['rating']) ? (int)$rev['rating'] : 0;
+    ?>
         <div class="review-item">
             <div class="review-header">
-                <div>
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprime"); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"] ?? "Etablissement supprime"); ?></span>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprimé"); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? "Établissement supprimé"); ?></span>
+                    <?php if ($rating > 0): ?>
+                        <span style="color:#f59e0b; letter-spacing:1px;">
+                            <?php for ($i = 1; $i <= 5; $i++) echo $i <= $rating ? '★' : '☆'; ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
                 <span class="review-date"><?php echo date("d/m/Y", strtotime($rev["created_at"])); ?></span>
             </div>
