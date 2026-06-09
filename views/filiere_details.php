@@ -51,8 +51,10 @@ if (str_contains($filiereLower, 'computer') || str_contains($filiereLower, 'info
     <div class="filiere-hero" style="<?php echo $useCustomBg ? "background-image: url('$heroBg'); background-size: cover; background-position: center;" : ""; ?>">
         <div class="container">
             <div class="hero-path">
-                <a href="orientation_explore.php"><?php echo __("orientation"); ?></a> / 
-                <span><?php echo htmlspecialchars($filiere['category_name']); ?></span>
+                <a href="orientation_explore.php"><?php echo __("orientation"); ?></a>
+                <?php if (!empty($filiere['category_name'])): ?>
+                / <span><?php echo htmlspecialchars($filiere['category_name']); ?></span>
+                <?php endif; ?>
             </div>
             <h1 class="filiere-title animate-title"><?php echo htmlspecialchars($filiere['nom']); ?></h1>
             <p class="filiere-description">
