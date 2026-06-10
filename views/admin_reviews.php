@@ -8,7 +8,7 @@ require_platform_admin($pdo);
 // Handle approve/reject actions
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
-        header("Location: admin_reviews.php?error=Requete%20invalide");
+        header("Location: admin_reviews.php?error=" . urlencode(__('admin_reviews_error_csrf')));
         exit();
     }
 
@@ -18,18 +18,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($reviewId > 0 && $action === 'approve') {
         $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
         $stmt->execute([$reviewId]);
-        header("Location: admin_reviews.php?success=Avis%20approuve");
+        header("Location: admin_reviews.php?success=" . urlencode(__('admin_reviews_success_approved')));
         exit();
     }
 
     if ($reviewId > 0 && $action === 'reject') {
         $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
         $stmt->execute([$reviewId]);
-        header("Location: admin_reviews.php?success=Avis%20supprime");
+        header("Location: admin_reviews.php?success=" . urlencode(__('admin_reviews_success_deleted')));
         exit();
     }
 
-    header("Location: admin_reviews.php?error=Action%20invalide");
+    header("Location: admin_reviews.php?error=" . urlencode(__('admin_reviews_error_action')));
     exit();
 }
 
@@ -58,7 +58,7 @@ $approvedStmt = $pdo->query($approvedSql);
 $approvedReviews = $approvedStmt->fetchAll();
 ?>
 
-<h1 class="page-title">🛡️ Gestion des avis</h1>
+<h1 class="page-title">🛡️ <?php echo __('admin_reviews_title'); ?></h1>
 
 <?php if (isset($_GET['success'])): ?>
     <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
@@ -69,12 +69,12 @@ $approvedReviews = $approvedStmt->fetchAll();
 
 <!-- Pending Reviews -->
 <h2 style="font-size:1.1rem; color:var(--navy); margin-bottom:12px;">
-    ⏳ En attente (<?php echo count($pendingReviews); ?>)
+    ⏳ <?php echo __('admin_reviews_pending'); ?> (<?php echo count($pendingReviews); ?>)
 </h2>
 
 <?php if (count($pendingReviews) == 0): ?>
     <div class="msg" style="background:var(--orange-light); color:var(--orange-dark);">
-        Aucun avis en attente de validation.
+        <?php echo __('admin_reviews_no_pending'); ?>
     </div>
 <?php else: ?>
     <?php foreach($pendingReviews as $rev):
@@ -83,8 +83,8 @@ $approvedReviews = $approvedStmt->fetchAll();
         <div class="review-item" style="border-left:4px solid var(--orange);">
             <div class="review-header">
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprimé"); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? "Établissement supprimé"); ?></span>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? __('admin_reviews_deleted_user')); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? __('admin_reviews_deleted_institution')); ?></span>
                     <?php if ($rating > 0): ?>
                         <span style="color:#f59e0b; letter-spacing:1px;">
                             <?php for ($i = 1; $i <= 5; $i++) echo $i <= $rating ? '★' : '☆'; ?>
@@ -101,13 +101,13 @@ $approvedReviews = $approvedStmt->fetchAll();
                     <?php echo csrf_input(); ?>
                     <input type="hidden" name="review_id" value="<?php echo $rev['id']; ?>">
                     <input type="hidden" name="action" value="approve">
-                    <button type="submit" class="btn btn-primary" style="background:#27ae60;">Approuver</button>
+                    <button type="submit" class="btn btn-primary" style="background:#27ae60;"><?php echo __('admin_reviews_approve'); ?></button>
                 </form>
-                <form method="POST" action="admin_reviews.php" style="display:inline;" onsubmit="return confirm('Supprimer cet avis ?');">
+                <form method="POST" action="admin_reviews.php" style="display:inline;" onsubmit="return confirm('<?php echo __('admin_reviews_confirm_delete'); ?>');">
                     <?php echo csrf_input(); ?>
                     <input type="hidden" name="review_id" value="<?php echo $rev['id']; ?>">
                     <input type="hidden" name="action" value="reject">
-                    <button type="submit" class="btn btn-danger">Rejeter</button>
+                    <button type="submit" class="btn btn-danger"><?php echo __('admin_reviews_reject'); ?></button>
                 </form>
             </div>
         </div>
@@ -116,11 +116,11 @@ $approvedReviews = $approvedStmt->fetchAll();
 
 <!-- Approved Reviews -->
 <h2 style="font-size:1.1rem; color:var(--navy); margin:25px 0 12px;">
-    ✅ Approuvés (<?php echo count($approvedReviews); ?>)
+    ✅ <?php echo __('admin_reviews_approved'); ?> (<?php echo count($approvedReviews); ?>)
 </h2>
 
 <?php if (count($approvedReviews) == 0): ?>
-    <p style="color:var(--text-muted); font-size:0.85rem;">Aucun avis approuvé.</p>
+    <p style="color:var(--text-muted); font-size:0.85rem;"><?php echo __('admin_reviews_no_approved'); ?></p>
 <?php else: ?>
     <?php foreach($approvedReviews as $rev):
         $rating = isset($rev['rating']) ? (int)$rev['rating'] : 0;
@@ -128,8 +128,8 @@ $approvedReviews = $approvedStmt->fetchAll();
         <div class="review-item">
             <div class="review-header">
                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? "Utilisateur supprimé"); ?></span>
-                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? "Établissement supprimé"); ?></span>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"] ?? __('admin_reviews_deleted_user')); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;">→ <?php echo htmlspecialchars($rev["school_name"] ?? __('admin_reviews_deleted_institution')); ?></span>
                     <?php if ($rating > 0): ?>
                         <span style="color:#f59e0b; letter-spacing:1px;">
                             <?php for ($i = 1; $i <= 5; $i++) echo $i <= $rating ? '★' : '☆'; ?>

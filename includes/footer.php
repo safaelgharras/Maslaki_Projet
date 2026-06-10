@@ -124,6 +124,25 @@
 </style>
 
 <script src="<?php echo $base; ?>assets/js/script.js"></script>
+
+<?php
+// ── Conditional Chatbot Loading ────────────────────────────────
+// Only load chatbot on Profile and AI Orientation pages
+$currentPage = basename($_SERVER['PHP_SELF']);
+$chatbotAllowedPages = [
+    'dashboard.php',   // Profile page
+    'ai_form.php',     // AI Orientation form
+    'ai_process.php',  // AI Orientation results
+];
+$showChatbot = in_array($currentPage, $chatbotAllowedPages);
+
+if ($showChatbot) {
+    // Pass page context to chatbot widget
+    $chatbotContext = ($currentPage === 'dashboard.php') ? 'profile' : 'orientation';
+    require_once __DIR__ . '/chatbot.php';
+}
+?>
+
 </body>
 </html>
 
