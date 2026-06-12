@@ -16,12 +16,12 @@ try {
         $notificationColumns[$column['Field']] = true;
     }
 } catch (Exception $e) {
-    $errorMsg = "Impossible de lire la structure des notifications : " . $e->getMessage();
+    $errorMsg = __('admin_notif_error_db_structure') . ' : ' . $e->getMessage();
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
-        $errorMsg = "Requete invalide. Rechargez la page et reessayez.";
+        $errorMsg = __('admin_notif_error_csrf');
     }
 
     $title = trim($_POST["title"] ?? "");
@@ -35,11 +35,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $target = $_POST["target"] ?? "all";
 
     if ($errorMsg === "" && ($title === "" || $message === "")) {
-        $errorMsg = "Le titre et le message en francais sont obligatoires.";
+        $errorMsg = __('admin_notif_error_required');
     } elseif ($errorMsg === "" && !in_array($type, $allowedTypes, true)) {
-        $errorMsg = "Type de notification invalide.";
+        $errorMsg = __('admin_notif_error_type');
     } elseif ($errorMsg === "" && $target !== "all" && filter_var($target, FILTER_VALIDATE_INT) === false) {
-        $errorMsg = "Cible invalide.";
+        $errorMsg = __('admin_notif_error_target');
     } elseif ($errorMsg === "") {
         try {
             $columns = ['title', 'message', 'type', 'related_link', 'is_global'];
@@ -65,9 +65,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $placeholders = implode(', ', array_fill(0, count($columns), '?'));
             $stmt = $pdo->prepare("INSERT INTO notifications (" . implode(', ', $columns) . ") VALUES ($placeholders)");
             $stmt->execute($values);
-            $successMsg = "Notification envoyee avec succes !";
+            $successMsg = __('admin_notif_success');
         } catch (Exception $e) {
-            $errorMsg = "Erreur : " . $e->getMessage();
+            $errorMsg = __('admin_notif_error_prefix') . ' : ' . $e->getMessage();
         }
     }
 }
@@ -77,7 +77,7 @@ try {
 } catch (Exception $e) {
     $students = [];
     if ($errorMsg === "") {
-        $errorMsg = "Impossible de charger les etudiants : " . $e->getMessage();
+        $errorMsg = __('admin_notif_error_students') . ' : ' . $e->getMessage();
     }
 }
 
@@ -86,7 +86,7 @@ require "../includes/header.php";
 ?>
 
 <div class="container" style="max-width: 700px; margin-top: 40px;">
-    <h1 class="page-title">Envoyer une Notification</h1>
+    <h1 class="page-title"><?php echo __('admin_notif_title'); ?></h1>
 
     <?php if ($successMsg): ?>
         <div class="msg msg-success"><?php echo htmlspecialchars($successMsg); ?></div>
@@ -102,53 +102,53 @@ require "../includes/header.php";
 
             <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <div>
-                    <label>Titre (Francais)</label>
-                    <input type="text" name="title" placeholder="Ex: Nouveau seuil" required>
+                    <label><?php echo __('admin_notif_label_title_fr'); ?></label>
+                    <input type="text" name="title" placeholder="<?php echo __('admin_notif_ph_title_fr'); ?>" required>
                 </div>
                 <div>
-                    <label>Titre (English)</label>
-                    <input type="text" name="title_en" placeholder="Ex: New threshold">
+                    <label><?php echo __('admin_notif_label_title_en'); ?></label>
+                    <input type="text" name="title_en" placeholder="<?php echo __('admin_notif_ph_title_en'); ?>">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Titre (Arabic)</label>
-                <input type="text" name="title_ar" placeholder="Ex: عتبة جديدة" style="text-align: right;" dir="rtl">
+                <label><?php echo __('admin_notif_label_title_ar'); ?></label>
+                <input type="text" name="title_ar" placeholder="<?php echo __('admin_notif_ph_title_ar'); ?>" style="text-align: right;" dir="rtl">
             </div>
 
             <div class="form-group">
-                <label>Message (Francais)</label>
-                <textarea name="message" rows="3" placeholder="Contenu en francais..." required></textarea>
+                <label><?php echo __('admin_notif_label_msg_fr'); ?></label>
+                <textarea name="message" rows="3" placeholder="<?php echo __('admin_notif_ph_msg_fr'); ?>" required></textarea>
             </div>
 
             <div class="form-group">
-                <label>Message (English)</label>
-                <textarea name="message_en" rows="3" placeholder="English content..."></textarea>
+                <label><?php echo __('admin_notif_label_msg_en'); ?></label>
+                <textarea name="message_en" rows="3" placeholder="<?php echo __('admin_notif_ph_msg_en'); ?>"></textarea>
             </div>
 
             <div class="form-group">
-                <label>Message (Arabic)</label>
-                <textarea name="message_ar" rows="3" placeholder="المحتوى باللغة العربية..." style="text-align: right;" dir="rtl"></textarea>
+                <label><?php echo __('admin_notif_label_msg_ar'); ?></label>
+                <textarea name="message_ar" rows="3" placeholder="<?php echo __('admin_notif_ph_msg_ar'); ?>" style="text-align: right;" dir="rtl"></textarea>
             </div>
 
             <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <div>
-                    <label>Type</label>
+                    <label><?php echo __('admin_notif_label_type'); ?></label>
                     <select name="type">
-                        <option value="system">Systeme</option>
-                        <option value="school">Ecole</option>
-                        <option value="filiere">Filiere</option>
-                        <option value="announcement">Annonce</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="orientation">Orientation</option>
-                        <option value="deadline">Date limite</option>
+                        <option value="system"><?php echo __('admin_notif_type_system'); ?></option>
+                        <option value="school"><?php echo __('admin_notif_type_school'); ?></option>
+                        <option value="filiere"><?php echo __('admin_notif_type_filiere'); ?></option>
+                        <option value="announcement"><?php echo __('admin_notif_type_announcement'); ?></option>
+                        <option value="maintenance"><?php echo __('admin_notif_type_maintenance'); ?></option>
+                        <option value="orientation"><?php echo __('admin_notif_type_orientation'); ?></option>
+                        <option value="deadline"><?php echo __('admin_notif_type_deadline'); ?></option>
                     </select>
                 </div>
                 <div>
-                    <label>Cible</label>
+                    <label><?php echo __('admin_notif_label_target'); ?></label>
                     <select name="target">
-                        <option value="all">Tous les utilisateurs</option>
-                        <optgroup label="Etudiant specifique">
+                        <option value="all"><?php echo __('admin_notif_target_all'); ?></option>
+                        <optgroup label="<?php echo __('admin_notif_target_specific'); ?>">
                             <?php foreach ($students as $student): ?>
                                 <option value="<?php echo (int) $student['id']; ?>">
                                     <?php echo htmlspecialchars($student['name']); ?> (<?php echo htmlspecialchars($student['email']); ?>)
@@ -160,12 +160,12 @@ require "../includes/header.php";
             </div>
 
             <div class="form-group">
-                <label>Lien relatif (optionnel)</label>
-                <input type="text" name="link" placeholder="Ex: views/institution_detail.php?id=61">
-                <small style="color:var(--text-muted);">Laissez vide si aucun lien n'est necessaire.</small>
+                <label><?php echo __('admin_notif_label_link'); ?></label>
+                <input type="text" name="link" placeholder="<?php echo __('admin_notif_ph_link'); ?>">
+                <small style="color:var(--text-muted);"><?php echo __('admin_notif_link_hint'); ?></small>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width:100%; padding:15px; font-size:1rem;">Diffuser la notification</button>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:15px; font-size:1rem;"><?php echo __('admin_notif_submit'); ?></button>
         </form>
     </div>
 </div>

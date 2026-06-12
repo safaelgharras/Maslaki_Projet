@@ -1,5 +1,6 @@
 <?php
-$pageTitle = "Sauvegardés";
+require_once "../includes/lang_helper.php";
+$pageTitle = __('saved_schools_page_title');
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/csrf.php";
@@ -22,7 +23,7 @@ $stmt->execute([$student_id]);
 $schools = $stmt->fetchAll();
 ?>
 
-<h1 class="page-title">Mes écoles sauvegardées</h1>
+<h1 class="page-title"><?php echo __('saved_schools_page_title'); ?></h1>
 
 <?php if (isset($_GET['success'])): ?>
     <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
@@ -35,8 +36,8 @@ $schools = $stmt->fetchAll();
 <?php if (count($schools) == 0): ?>
     <div class="empty-state">
         <div class="icon">📭</div>
-        <p><?php echo __('saved_schools_empty') ?? "Tu n'as pas encore sauvegardé d'école."; ?></p>
-        <a href="institutions.php" class="btn btn-orange btn-lg" style="margin-top:15px;"><?php echo __('explore_universities') ?? "Explorer les universités"; ?></a>
+        <p><?php echo __('saved_schools_empty'); ?></p>
+        <a href="institutions.php" class="btn btn-orange btn-lg" style="margin-top:15px;"><?php echo __('explore_universities'); ?></a>
     </div>
 <?php else: ?>
     <div class="cards-grid">
@@ -57,7 +58,7 @@ $schools = $stmt->fetchAll();
                         <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $s['min_average'] ?? '--'; ?></strong></span>
                         <div class="card-actions">
                             <a href="institution_detail.php?id=<?php echo $s['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>
-                            <form method="POST" action="../remove_school.php" style="display:inline;" onsubmit="return confirm('<?php echo __('confirm_delete_school') ?? 'Supprimer cette école ?'; ?>');">
+                            <form method="POST" action="../remove_school.php" style="display:inline;" onsubmit="return confirm('<?php echo addslashes(__('confirm_delete_school')); ?>');">
                                 <?php echo csrf_input(); ?>
                                 <input type="hidden" name="id" value="<?php echo $s['id']; ?>">
                                 <button type="submit" class="btn btn-danger"><?php echo __('delete'); ?></button>

@@ -383,4 +383,59 @@ return [
     'admin_users_success_promote' => 'Utilisateur promu au rang d\'administrateur',
     'admin_users_success_demote' => 'Utilisateur rétrogradé au rang d\'étudiant',
     'admin_users_error_action' => 'Action invalide',
+
+    // ── Saved Schools ──────────────────────────────────────────
+    'saved_schools_page_title' => 'Mes écoles sauvegardées',
+    'saved_schools_empty' => 'Tu n\'as pas encore sauvegardé d\'école.',
+    'explore_universities' => 'Explorer les universités',
+    'confirm_delete_school' => 'Supprimer cette école ?',
+    'morocco' => 'Maroc',
+    'diploma' => 'Diplôme',
+    'no_institutions_criteria' => 'Aucun établissement ne correspond à vos critères.',
+
+    // ── Reviews (Institution Detail) ───────────────────────────
+    'review_moderation_hint' => 'Votre avis sera publié après modération.',
+    'no_reviews_yet' => 'Aucun avis pour cet établissement pour l\'instant.',
+    'be_first_review' => 'Soyez le premier à partager votre expérience !',
+    'review_success_msg' => 'Votre avis a été envoyé et sera publié après validation.',
+    'today' => 'Aujourd\'hui',
+    'time_ago_days' => 'Il y a %s jours',
+    'time_ago_months' => 'Il y a %s mois',
+    'review_helpful' => 'Utile',
+    'star_label' => 'étoiles',
+    'review_count_label' => 'avis',
+
+    // ── Register: Google Dev Modal ─────────────────────────────
+    'google_choose_account' => 'Choisissez un compte',
+    'google_continue_to' => 'pour continuer vers Maslaki',
+    'google_dev_mode' => 'Mode Dev',
+    'terms_accept' => 'J\'accepte les',
+    'terms_of_use' => 'Conditions d\'utilisation',
+    'terms_and' => 'et la',
+    'privacy_policy' => 'Politique de confidentialité',
+
+    // ── Platform Admin ─────────────────────────────────────────
+    'admin_role_restricted_msg' => 'La gestion des rôles est réservée exclusivement au Superadmin (propriétaire de la plateforme). Vous avez un rôle Admin, mais vous ne pouvez pas modifier les rôles des autres utilisateurs.',
+    'back_to_dashboard' => '← Retour au tableau de bord',
+    'admin_info_role_restricted' => 'Vous êtes administrateur. La gestion des rôles est réservée au Superadmin.',
+
+    // ── Backend Processing Messages ────────────────────────────
+    'error_invalid_credentials' => 'Email ou mot de passe invalide',
+    'error_email_exists' => 'Cet email est déjà enregistré',
+    'success_registration' => 'Inscription réussie ! Veuillez vous connecter.',
+    'error_invalid_request' => 'Requête invalide',
+    'error_invalid_school' => 'École invalide',
+    'success_school_removed' => 'École retirée',
+    'success_school_saved' => 'École sauvegardée avec succès !',
+    'error_login_required' => 'Connexion requise',
+    'error_all_fields_required' => 'Tous les champs sont requis',
+    'error_invalid_id' => 'ID invalide',
+    'error_appointment_not_found' => 'Rendez-vous introuvable',
+    'notif_appointment_confirmed' => 'Rendez-vous Confirmé',
+    'notif_appointment_msg' => 'Votre rendez-vous pour \'%s\' a été enregistré avec succès.',
+    'error_review_empty' => 'L\'avis ne peut pas être vide.',
+    'error_review_duplicate' => 'Tu as déjà laissé un avis pour cet établissement.',
+    'error_csrf_retry' => 'Requête invalide, veuillez réessayer.',
+    'success_school_deleted' => 'École supprimée avec succès',
+    'error_school_not_found' => 'École introuvable ou déjà supprimée',
 ];

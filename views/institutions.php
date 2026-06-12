@@ -1,5 +1,6 @@
 <?php
-$pageTitle = "Établissements";
+require_once "../includes/lang_helper.php";
+$pageTitle = __('institutions');
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/csrf.php";
@@ -107,19 +108,9 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
 function translateType($type) {
     $key = 'type_' . strtolower($type);
     $translated = __($key);
-    // If translation not found, fallback to original or hardcoded map
+    // If translation not found, fallback to original
     if ($translated === $key) {
-        $map = [
-            'Engineering' => 'Ingénierie',
-            'Business' => 'Commerce',
-            'Science' => 'Sciences',
-            'Technical' => 'Technique',
-            'Preparatory' => 'Classes Prépa',
-            'Private' => 'Privé',
-            'Education' => 'Éducation',
-            'University' => 'Université'
-        ];
-        return $map[$type] ?? $type;
+        return $type;
     }
     return $translated;
 }
@@ -334,7 +325,8 @@ const langTranslations = {
     type_digital: <?php echo json_encode(__('type_digital')); ?>,
     type_art: <?php echo json_encode(__('type_art')); ?>,
     type_management: <?php echo json_encode(__('type_management')); ?>,
-    type_medical: <?php echo json_encode(__('type_medical')); ?>
+    type_medical: <?php echo json_encode(__('type_medical')); ?>,
+    morocco: <?php echo json_encode(__('morocco')); ?>
 };
 
 const searchInput = document.getElementById('searchInput');
@@ -413,7 +405,7 @@ function renderResults(data) {
                 <div class="card-body">
                     <div class="badge">${translateType(inst.type)}</div>
                     <h3>${inst.name}</h3>
-                    <p class="school-location">📍 ${inst.city || 'Maroc'}</p>
+                    <p class="school-location">📍 ${inst.city || langTranslations.morocco}</p>
                     <div class="card-info-row">
                         <span>🎓 ${inst.diplome || langTranslations.diploma}</span>
                         <span>⏳ ${inst.duree_etudes || '--'}</span>

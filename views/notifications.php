@@ -1,8 +1,9 @@
 <?php
 session_start();
+require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 
-$pageTitle = "Notifications";
+$pageTitle = __('notifications');
 $base = "../";
 require "../includes/header.php";
 

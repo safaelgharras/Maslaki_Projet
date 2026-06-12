@@ -1,5 +1,6 @@
 <?php
-$pageTitle = "Mes Rendez-vous";
+require_once "../includes/lang_helper.php";
+$pageTitle = __('my_appointments');
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/csrf.php";

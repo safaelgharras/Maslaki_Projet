@@ -1,4 +1,5 @@
 <?php
+require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
@@ -17,7 +18,7 @@ $institution_id = (int) ($_POST['institution_id'] ?? 0);
 
 if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
     $back = $institution_id > 0
-        ? "views/institution_detail.php?id={$institution_id}&review_error=" . urlencode("Requête invalide, veuillez réessayer.")
+        ? "views/institution_detail.php?id={$institution_id}&review_error=" . urlencode(__('error_csrf_retry'))
         : "views/institutions.php";
     header("Location: $back");
     exit();
@@ -33,7 +34,7 @@ $content    = trim($_POST['content'] ?? '');
 $rating     = isset($_POST['rating']) ? max(1, min(5, (int) $_POST['rating'])) : null;
 
 if (empty($content)) {
-    header("Location: views/institution_detail.php?id={$institution_id}&review_error=" . urlencode("L'avis ne peut pas être vide."));
+    header("Location: views/institution_detail.php?id={$institution_id}&review_error=" . urlencode(__('error_review_empty')));
     exit();
 }
 
@@ -41,7 +42,7 @@ if (empty($content)) {
 $check = $pdo->prepare("SELECT id FROM reviews WHERE student_id = ? AND institution_id = ?");
 $check->execute([$student_id, $institution_id]);
 if ($check->fetch()) {
-    header("Location: views/institution_detail.php?id={$institution_id}&review_error=" . urlencode("Tu as déjà laissé un avis pour cet établissement."));
+    header("Location: views/institution_detail.php?id={$institution_id}&review_error=" . urlencode(__('error_review_duplicate')));
     exit();
 }
 

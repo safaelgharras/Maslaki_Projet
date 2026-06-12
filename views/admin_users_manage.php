@@ -13,12 +13,12 @@ $currentUserId = (int)$_SESSION['user_id'];
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Re-check superadmin on every POST (double-lock)
     if (!is_superadmin($pdo)) {
-        header("Location: admin_users_manage.php?error=Action%20non%20autorisee");
+        header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_unauthorized')));
         exit();
     }
 
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
-        header("Location: admin_users_manage.php?error=Requete%20invalide");
+        header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_csrf')));
         exit();
     }
 
@@ -26,14 +26,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST['action'] ?? '';
 
     if ($targetUserId === $currentUserId) {
-        header("Location: admin_users_manage.php?error=Vous%20ne%20pouvez%20pas%20modifier%20votre%20propre%20role");
+        header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_self')));
         exit();
     }
 
     // Never allow demoting another superadmin
     $targetRole = platform_admin_role($pdo, $targetUserId);
     if ($targetRole === 'superadmin') {
-        header("Location: admin_users_manage.php?error=Impossible%20de%20modifier%20le%20role%20d%27un%20superadmin");
+        header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_superadmin')));
         exit();
     }
 
@@ -41,21 +41,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($action === 'promote') {
             $stmt = $pdo->prepare("UPDATE students SET role = 'admin' WHERE id = ?");
             $stmt->execute([$targetUserId]);
-            header("Location: admin_users_manage.php?success=Utilisateur%20promu%20au%20rang%20d%27administrateur");
+            header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_promote')));
             exit();
         } elseif ($action === 'demote') {
             $stmt = $pdo->prepare("UPDATE students SET role = 'student' WHERE id = ?");
             $stmt->execute([$targetUserId]);
-            header("Location: admin_users_manage.php?success=Utilisateur%20retrograde%20au%20rang%20d%27etudiant");
+            header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_demote')));
             exit();
         }
     }
 
-    header("Location: admin_users_manage.php?error=Action%20invalide");
+    header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_action')));
     exit();
 }
 
-$pageTitle = "Administration — Utilisateurs";
+$pageTitle = __('platform_admin_users_page_title');
 require "../includes/header.php";
 
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -86,12 +86,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="user-manage-container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px; flex-wrap: wrap;">
         <div>
-            <h1 class="page-title" style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;">👥 Gestion des Utilisateurs</h1>
+            <h1 class="page-title" style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;">👥 <?php echo __('admin_users_title'); ?></h1>
             <div style="width: 60px; height: 3px; background: var(--orange); margin-top: 8px; margin-bottom: 8px;"></div>
-            <p style="color: var(--text-muted); margin: 0;">Gérez les rôles et attribuez des privilèges d'administration.</p>
+            <p style="color: var(--text-muted); margin: 0;"><?php echo __('admin_users_subtitle'); ?></p>
         </div>
         <a href="admin_dashboard.php" class="btn btn-outline" style="font-size: 0.9rem; padding: 10px 20px; border-radius: 12px; height: fit-content; text-decoration: none;">
-            ← Retour au Dashboard
+                        <?php echo __('admin_users_back_dashboard'); ?>
         </a>
     </div>
 
@@ -110,33 +110,33 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Search / Filter form -->
     <form method="GET" action="admin_users_manage.php" style="background: var(--white); padding: 25px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; gap: 15px; margin-bottom: 35px; flex-wrap: wrap; align-items: flex-end;">
         <div style="flex: 2; min-width: 250px;">
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Rechercher un utilisateur</label>
-            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Nom ou email..." class="search-input" style="width: 100%; box-sizing: border-box; border-radius: 12px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;"><?php echo __('admin_users_search_label'); ?></label>
+            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="<?php echo __('admin_users_search_ph'); ?>" class="search-input" style="width: 100%; box-sizing: border-box; border-radius: 12px;">
         </div>
         <div style="flex: 1; min-width: 150px;">
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Filtrer par rôle</label>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;"><?php echo __('admin_users_filter_role'); ?></label>
             <select name="role" class="filter-select" style="width: 100%; border-radius: 12px;">
-                <option value="">Tous les rôles</option>
-                <option value="student" <?php echo $roleFilter === 'student' ? 'selected' : ''; ?>>Étudiant (student)</option>
-                <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>>Administrateur (admin)</option>
-                <option value="superadmin" <?php echo $roleFilter === 'superadmin' ? 'selected' : ''; ?>>Superadmin 👑</option>
+                <option value=""><?php echo __('admin_users_all_roles'); ?></option>
+                <option value="student" <?php echo $roleFilter === 'student' ? 'selected' : ''; ?>><?php echo __('admin_users_role_student'); ?></option>
+                <option value="admin" <?php echo $roleFilter === 'admin' ? 'selected' : ''; ?>><?php echo __('admin_users_role_admin'); ?></option>
+                <option value="superadmin" <?php echo $roleFilter === 'superadmin' ? 'selected' : ''; ?>><?php echo __('admin_users_role_superadmin'); ?></option>
             </select>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button type="submit" class="btn btn-primary" style="padding: 14px 24px; border-radius: 12px;">Filtrer</button>
+            <button type="submit" class="btn btn-primary" style="padding: 14px 24px; border-radius: 12px;"><?php echo __('admin_users_filter_btn'); ?></button>
             <?php if ($search !== '' || $roleFilter !== ''): ?>
-                <a href="admin_users_manage.php" class="btn btn-outline" style="padding: 14px 20px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">Reset</a>
+                <a href="admin_users_manage.php" class="btn btn-outline" style="padding: 14px 20px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><?php echo __('admin_users_reset'); ?></a>
             <?php endif; ?>
         </div>
     </form>
 
     <!-- Users list -->
     <div style="display: flex; flex-direction: column; gap: 15px;">
-        <h2 style="font-size: 1.1rem; color: var(--navy); margin-bottom: 5px;">👥 Utilisateurs trouvés (<?php echo count($users); ?>)</h2>
+        <h2 style="font-size: 1.1rem; color: var(--navy); margin-bottom: 5px;">👥 <?php echo __('admin_users_found'); ?> (<?php echo count($users); ?>)</h2>
         
         <?php if (count($users) === 0): ?>
             <div class="msg" style="background: var(--bg-light); color: var(--text-muted); text-align: center; padding: 40px; border-radius: 20px; border: 1px dashed var(--border-color);">
-                Aucun utilisateur ne correspond à vos critères.
+                <?php echo __('admin_users_no_results'); ?>
             </div>
         <?php else: ?>
             <?php foreach ($users as $user): ?>
@@ -147,43 +147,43 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             👤
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <h3 style="margin: 0; font-size: 1.05rem; color: var(--text-dark);"><?php echo htmlspecialchars($user['name'] ?? 'Inconnu'); ?></h3>
+                            <h3 style="margin: 0; font-size: 1.05rem; color: var(--text-dark);"><?php echo htmlspecialchars($user['name'] ?? __('admin_users_unknown')); ?></h3>
                             <?php if ($user['role'] === 'superadmin'): ?>
                                 <span style="background: linear-gradient(135deg,#fef3c7,#fde68a); color: #92400e; font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; border: 1px solid #fbbf24;">👑 Superadmin</span>
                             <?php elseif ($user['role'] === 'admin'): ?>
                                 <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #bae6fd;">🛡️ Admin</span>
                             <?php else: ?>
-                                <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">👤 Étudiant</span>
+                                <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">👤 <?php echo __('admin_users_role_student'); ?></span>
                             <?php endif; ?>
                             <?php if ($isSelf): ?>
-                                <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a;">Vous</span>
+                                <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: 1px solid #fde68a;"><?php echo __('admin_users_you'); ?></span>
                             <?php endif; ?>
                             <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted); width: 100%;"><?php echo htmlspecialchars($user['email']); ?></p>
-                            <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); font-style: italic;">Inscrit le : <?php echo date("d/m/Y", strtotime($user['created_at'])); ?></p>
+                            <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); font-style: italic;"><?php echo __('admin_users_registered_on'); ?> <?php echo date("d/m/Y", strtotime($user['created_at'])); ?></p>
                         </div>
                     </div>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <?php if ($isSelf): ?>
-                            <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">Compte connecté</span>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;"><?php echo __('admin_users_connected_account'); ?></span>
                         <?php elseif ($user['role'] === 'superadmin'): ?>
-                            <span style="font-size: 0.82rem; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; padding: 6px 14px; border-radius: 10px; font-weight: 600;">👑 Compte protégé</span>
+                            <span style="font-size: 0.82rem; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; padding: 6px 14px; border-radius: 10px; font-weight: 600;">👑 <?php echo __('admin_users_protected_account'); ?></span>
                         <?php elseif ($user['role'] === 'student'): ?>
-                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Promouvoir cet utilisateur en tant qu\'administrateur ?');">
+                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('<?php echo addslashes(__('admin_users_confirm_promote')); ?>');">
                                 <?php echo csrf_input(); ?>
                                 <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                 <input type="hidden" name="action" value="promote">
                                 <button type="submit" class="btn btn-primary" style="background: #10b981; border-color: #10b981; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
-                                    Promouvoir Admin 🛡️
+                                    <?php echo __('admin_users_promote_btn'); ?>
                                 </button>
                             </form>
                         <?php elseif ($user['role'] === 'admin'): ?>
-                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('Rétrograder cet administrateur au rôle d\'étudiant ?');">
+                            <form method="POST" action="admin_users_manage.php" onsubmit="return confirm('<?php echo addslashes(__('admin_users_confirm_demote')); ?>');">
                                 <?php echo csrf_input(); ?>
                                 <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                 <input type="hidden" name="action" value="demote">
                                 <button type="submit" class="btn btn-danger" style="background: #ef4444; border-color: #ef4444; border-radius: 10px; font-size: 0.85rem; padding: 8px 16px;">
-                                    Rétrograder en Étudiant 👤
+                                    <?php echo __('admin_users_demote_btn'); ?>
                                 </button>
                             </form>
                         <?php endif; ?>

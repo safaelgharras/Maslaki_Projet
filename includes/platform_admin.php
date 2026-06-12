@@ -94,15 +94,14 @@ function require_superadmin(PDO $pdo): void
     // If they are any kind of admin but NOT superadmin → show specific denial
     if (is_platform_admin($pdo) && !is_superadmin($pdo)) {
         http_response_code(403);
-        $pageTitle = 'Gestion des rôles';
+        $pageTitle = function_exists('__') ? __('platform_admin_nav') : 'Administration';
         require __DIR__ . '/header.php';
         echo '<div class="main-content"><div style="max-width:600px;margin:60px auto;padding:0 20px;">'
             . '<div class="msg msg-error" style="border-radius:16px;padding:25px 30px;">'
-            . '🔒 <strong>Accès restreint.</strong><br><br>'
-            . 'La gestion des rôles est réservée exclusivement au <strong>Superadmin</strong> (propriétaire de la plateforme).<br>'
-            . 'Vous avez un rôle <em>Admin</em>, mais vous ne pouvez pas modifier les rôles des autres utilisateurs.'
+            . '🔒 <strong>' . (function_exists('__') ? __('platform_admin_access_denied') : 'Access denied.') . '</strong><br><br>'
+            . (function_exists('__') ? __('admin_role_restricted_msg') : 'Role management is reserved for the Superadmin.') . '<br>'
             . '</div>'
-            . '<div style="text-align:center;margin-top:20px;"><a href="admin_dashboard.php" class="btn btn-primary">← Retour au tableau de bord</a></div>'
+            . '<div style="text-align:center;margin-top:20px;"><a href="admin_dashboard.php" class="btn btn-primary">' . (function_exists('__') ? __('back_to_dashboard') : '← Back to Dashboard') . '</a></div>'
             . '</div></div>';
         require __DIR__ . '/footer.php';
         exit();

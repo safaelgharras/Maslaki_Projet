@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once "includes/lang_helper.php";
 require "config/DataBase.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -22,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
         
     } else {
-        header("Location: views/login.php?error=Invalid email or password");
+        header("Location: views/login.php?error=" . urlencode(__('error_invalid_credentials')));
         exit();
     }
 }

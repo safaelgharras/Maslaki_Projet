@@ -356,12 +356,12 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
             <section class="info-card reviews-section" id="reviews">
                 <div class="reviews-section-header">
                     <h2><?php echo __('student_reviews'); ?></h2>
-                    <span class="reviews-count-badge"><?php echo count($reviews); ?> <?php echo count($reviews) === 1 ? 'avis' : 'avis'; ?></span>
+                    <span class="reviews-count-badge"><?php echo count($reviews); ?> <?php echo __('review_count_label'); ?></span>
                 </div>
 
                 <?php if (isset($_GET['review_success'])): ?>
                     <div class="review-flash review-flash-success">
-                        ✅ Votre avis a été envoyé et sera publié après validation.
+                        ✅ <?php echo __('review_success_msg'); ?>
                     </div>
                 <?php elseif (isset($_GET['review_error'])): ?>
                     <div class="review-flash review-flash-error">
@@ -384,12 +384,12 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                                 <div class="compose-rating" aria-label="Note">
                                     <?php for ($i = 5; $i >= 1; $i--): ?>
                                         <input type="radio" name="rating" id="star<?php echo $i; ?>" value="<?php echo $i; ?>">
-                                        <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> étoiles">★</label>
+                                        <label for="star<?php echo $i; ?>" title="<?php echo $i; ?> <?php echo __('star_label'); ?>">★</label>
                                     <?php endfor; ?>
                                 </div>
                                 <textarea name="content" class="compose-textarea" placeholder="<?php echo htmlspecialchars(__('share_review')); ?>" required rows="3"></textarea>
                                 <div class="compose-footer">
-                                    <span class="compose-hint">Votre avis sera publié après modération.</span>
+                                    <span class="compose-hint"><?php echo __('review_moderation_hint'); ?></span>
                                     <button type="submit" class="btn-submit-review">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                                         <?php echo __('submit_review'); ?>
@@ -410,18 +410,18 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                     <?php if (empty($reviews)): ?>
                         <div class="reviews-empty">
                             <div class="reviews-empty-icon">🎓</div>
-                            <p>Aucun avis pour cet établissement pour l'instant.</p>
-                            <span>Soyez le premier à partager votre expérience !</span>
+                            <p><?php echo __('no_reviews_yet'); ?></p>
+                            <span><?php echo __('be_first_review'); ?></span>
                         </div>
                     <?php else: ?>
                         <?php foreach($reviews as $rev):
                             $initials = strtoupper(substr($rev['author_name'], 0, 1));
                             $rating   = isset($rev['rating']) ? (int)$rev['rating'] : 0;
                             $daysAgo  = (int)floor((time() - strtotime($rev['created_at'])) / 86400);
-                            if ($daysAgo === 0)      $timeLabel = "Aujourd'hui";
-                            elseif ($daysAgo === 1)  $timeLabel = "Hier";
-                            elseif ($daysAgo < 30)   $timeLabel = "Il y a {$daysAgo} jours";
-                            elseif ($daysAgo < 365)  $timeLabel = "Il y a " . floor($daysAgo / 30) . " mois";
+                            if ($daysAgo === 0)      $timeLabel = __('today');
+                            elseif ($daysAgo === 1)  $timeLabel = __('yesterday');
+                            elseif ($daysAgo < 30)   $timeLabel = sprintf(__('time_ago_days'), $daysAgo);
+                            elseif ($daysAgo < 365)  $timeLabel = sprintf(__('time_ago_months'), floor($daysAgo / 30));
                             else                     $timeLabel = date('d/m/Y', strtotime($rev['created_at']));
                         ?>
                             <div class="review-card">
@@ -432,7 +432,7 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                                     <div class="review-card-meta">
                                         <span class="review-card-author"><?php echo htmlspecialchars($rev['author_name']); ?></span>
                                         <?php if ($rating > 0): ?>
-                                            <span class="review-card-stars" aria-label="<?php echo $rating; ?> étoiles">
+                                            <span class="review-card-stars" aria-label="<?php echo $rating; ?> <?php echo __('star_label'); ?>">
                                                 <?php for ($i = 1; $i <= 5; $i++): ?>
                                                     <span class="<?php echo $i <= $rating ? 'star-filled' : 'star-empty'; ?>">★</span>
                                                 <?php endfor; ?>
@@ -442,9 +442,9 @@ $mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $
                                     </div>
                                     <p class="review-card-text"><?php echo nl2br(htmlspecialchars($rev['content'])); ?></p>
                                     <div class="review-card-actions">
-                                        <button class="review-helpful-btn" aria-label="Utile">
+                                        <button class="review-helpful-btn" aria-label="<?php echo __('review_helpful'); ?>">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                                            Utile
+                                            <?php echo __('review_helpful'); ?>
                                         </button>
                                     </div>
                                 </div>

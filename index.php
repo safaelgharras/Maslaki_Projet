@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="card-body">
                 <div class="card-tag"><?php echo htmlspecialchars($schoolType); ?></div>
                 <h3><?php echo htmlspecialchars($schoolName); ?></h3>
-                <p class="school-location">📍 <?php echo htmlspecialchars($schoolCity ?: 'Maroc'); ?></p>
+                <p class="school-location">📍 <?php echo htmlspecialchars($schoolCity ?: __('morocco')); ?></p>
                 <div class="card-footer">
                     <span class="seuil"><?php echo __('seuil'); ?>: <strong><?php echo $school['seuil'] ?? '--'; ?></strong></span>
                     <a href="views/institution_detail.php?id=<?php echo $school['id']; ?>" class="btn-link"><?php echo __('details_arrow'); ?></a>

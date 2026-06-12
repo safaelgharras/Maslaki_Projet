@@ -1,4 +1,5 @@
 <?php
+require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
@@ -16,7 +17,7 @@ if (!require_method('POST', false) || !verify_csrf_token($_POST["csrf_token"] ??
     if (is_ajax_request()) {
         json_error('Invalid request', 403);
     }
-    header("Location: views/institutions.php?error=Invalid request");
+    header("Location: views/institutions.php?error=" . urlencode(__('error_invalid_request')));
     exit();
 }
 
@@ -24,7 +25,7 @@ if (!isset($_POST["id"]) || !is_numeric($_POST["id"])) {
     if (is_ajax_request()) {
         json_error('Invalid ID');
     }
-    header("Location: views/institutions.php?error=Invalid school");
+    header("Location: views/institutions.php?error=" . urlencode(__('error_invalid_school')));
     exit();
 }
 
@@ -42,7 +43,7 @@ if ($existing) {
     if (is_ajax_request()) {
         json_success('School removed', ['action' => 'removed']);
     }
-    header("Location: views/institutions.php?success=School removed");
+    header("Location: views/institutions.php?success=" . urlencode(__('success_school_removed')));
     exit();
 }
 
@@ -55,6 +56,6 @@ if (is_ajax_request()) {
     json_success('School saved', ['action' => 'saved']);
 }
 
-header("Location: views/institutions.php?success=School saved successfully!");
+header("Location: views/institutions.php?success=" . urlencode(__('success_school_saved')));
 exit();
 ?>

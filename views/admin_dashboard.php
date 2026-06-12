@@ -257,7 +257,7 @@ require '../includes/header.php';
             <p><?php echo __('platform_admin_dashboard_intro'); ?></p>
             <?php if (!$isSuperAdmin): ?>
                 <p style="margin-top:12px;font-size:0.82rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);display:inline-block;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
-                    ℹ️ Vous êtes administrateur. La gestion des rôles est réservée au Superadmin.
+                    ℹ️ <?php echo __('admin_info_role_restricted'); ?>
                 </p>
             <?php endif; ?>
         </div>

@@ -393,4 +393,59 @@ return [
     'admin_users_success_promote' => 'تم ترقية المستخدم إلى مدير',
     'admin_users_success_demote' => 'تم خفض رتبة المستخدم إلى طالب',
     'admin_users_error_action' => 'إجراء غير صالح',
+
+    // ── Saved Schools ──────────────────────────────────────────
+    'saved_schools_page_title' => 'مدارسي المحفوظة',
+    'saved_schools_empty' => 'لم تحفظ أي مدرسة بعد.',
+    'explore_universities' => 'استكشف الجامعات',
+    'confirm_delete_school' => 'حذف هذه المدرسة؟',
+    'morocco' => 'المغرب',
+    'diploma' => 'دبلوم',
+    'no_institutions_criteria' => 'لا توجد مؤسسات تطابق معاييرك.',
+
+    // ── Reviews (Institution Detail) ───────────────────────────
+    'review_moderation_hint' => 'سيتم نشر رأيك بعد المراجعة.',
+    'no_reviews_yet' => 'لا توجد آراء لهذه المؤسسة بعد.',
+    'be_first_review' => 'كن أول من يشارك تجربته!',
+    'review_success_msg' => 'تم إرسال رأيك وسيتم نشره بعد التحقق.',
+    'today' => 'اليوم',
+    'time_ago_days' => 'منذ %s أيام',
+    'time_ago_months' => 'منذ %s أشهر',
+    'review_helpful' => 'مفيد',
+    'star_label' => 'نجوم',
+    'review_count_label' => 'آراء',
+
+    // ── Register: Google Dev Modal ─────────────────────────────
+    'google_choose_account' => 'اختر حساباً',
+    'google_continue_to' => 'للمتابعة إلى مسلكي',
+    'google_dev_mode' => 'وضع التطوير',
+    'terms_accept' => 'أوافق على',
+    'terms_of_use' => 'شروط الاستخدام',
+    'terms_and' => 'و',
+    'privacy_policy' => 'سياسة الخصوصية',
+
+    // ── Platform Admin ─────────────────────────────────────────
+    'admin_role_restricted_msg' => 'إدارة الأدوار محصورة حصرياً بالمدير الأعلى (مالك المنصة). لديك دور مدير، لكن لا يمكنك تعديل أدوار المستخدمين الآخرين.',
+    'back_to_dashboard' => '→ العودة إلى لوحة التحكم',
+    'admin_info_role_restricted' => 'أنت مدير. إدارة الأدوار محصورة بالمدير الأعلى.',
+
+    // ── Backend Processing Messages ────────────────────────────
+    'error_invalid_credentials' => 'بريد إلكتروني أو كلمة مرور غير صالحة',
+    'error_email_exists' => 'هذا البريد الإلكتروني مسجل مسبقاً',
+    'success_registration' => 'تم التسجيل بنجاح! يرجى تسجيل الدخول.',
+    'error_invalid_request' => 'طلب غير صالح',
+    'error_invalid_school' => 'مدرسة غير صالحة',
+    'success_school_removed' => 'تم حذف المدرسة',
+    'success_school_saved' => 'تم حفظ المدرسة بنجاح!',
+    'error_login_required' => 'يجب تسجيل الدخول',
+    'error_all_fields_required' => 'جميع الحقول مطلوبة',
+    'error_invalid_id' => 'معرف غير صالح',
+    'error_appointment_not_found' => 'الموعد غير موجود',
+    'notif_appointment_confirmed' => 'تم تأكيد الموعد',
+    'notif_appointment_msg' => 'تم تسجيل موعدك لـ \'%s\' بنجاح.',
+    'error_review_empty' => 'لا يمكن أن يكون الرأي فارغاً.',
+    'error_review_duplicate' => 'لقد تركت بالفعل رأياً لهذه المؤسسة.',
+    'error_csrf_retry' => 'طلب غير صالح، يرجى المحاولة مرة أخرى.',
+    'success_school_deleted' => 'تم حذف المدرسة بنجاح',
+    'error_school_not_found' => 'المدرسة غير موجودة أو محذوفة بالفعل',
 ];

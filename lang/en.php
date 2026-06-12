@@ -393,4 +393,59 @@ return [
     'admin_users_success_promote' => 'User promoted to administrator',
     'admin_users_success_demote' => 'User demoted to student',
     'admin_users_error_action' => 'Invalid action',
+
+    // ── Saved Schools ──────────────────────────────────────────
+    'saved_schools_page_title' => 'My Saved Schools',
+    'saved_schools_empty' => 'You haven\'t saved any schools yet.',
+    'explore_universities' => 'Explore Universities',
+    'confirm_delete_school' => 'Delete this school?',
+    'morocco' => 'Morocco',
+    'diploma' => 'Diploma',
+    'no_institutions_criteria' => 'No institutions match your criteria.',
+
+    // ── Reviews (Institution Detail) ───────────────────────────
+    'review_moderation_hint' => 'Your review will be published after moderation.',
+    'no_reviews_yet' => 'No reviews for this institution yet.',
+    'be_first_review' => 'Be the first to share your experience!',
+    'review_success_msg' => 'Your review has been submitted and will be published after validation.',
+    'today' => 'Today',
+    'time_ago_days' => '%s days ago',
+    'time_ago_months' => '%s months ago',
+    'review_helpful' => 'Helpful',
+    'star_label' => 'stars',
+    'review_count_label' => 'reviews',
+
+    // ── Register: Google Dev Modal ─────────────────────────────
+    'google_choose_account' => 'Choose an account',
+    'google_continue_to' => 'to continue to Maslaki',
+    'google_dev_mode' => 'Dev Mode',
+    'terms_accept' => 'I agree to the',
+    'terms_of_use' => 'Terms of Use',
+    'terms_and' => 'and',
+    'privacy_policy' => 'Privacy Policy',
+
+    // ── Platform Admin ─────────────────────────────────────────
+    'admin_role_restricted_msg' => 'Role management is exclusively reserved for the Superadmin (platform owner). You have an Admin role, but you cannot modify other users\' roles.',
+    'back_to_dashboard' => '← Back to Dashboard',
+    'admin_info_role_restricted' => 'You are an administrator. Role management is reserved for the Superadmin.',
+
+    // ── Backend Processing Messages ────────────────────────────
+    'error_invalid_credentials' => 'Invalid email or password',
+    'error_email_exists' => 'This email is already registered',
+    'success_registration' => 'Registration successful! Please login.',
+    'error_invalid_request' => 'Invalid request',
+    'error_invalid_school' => 'Invalid school',
+    'success_school_removed' => 'School removed',
+    'success_school_saved' => 'School saved successfully!',
+    'error_login_required' => 'Login required',
+    'error_all_fields_required' => 'All fields are required',
+    'error_invalid_id' => 'Invalid ID',
+    'error_appointment_not_found' => 'Appointment not found',
+    'notif_appointment_confirmed' => 'Appointment Confirmed',
+    'notif_appointment_msg' => 'Your appointment for \'%s\' has been successfully registered.',
+    'error_review_empty' => 'The review cannot be empty.',
+    'error_review_duplicate' => 'You have already left a review for this institution.',
+    'error_csrf_retry' => 'Invalid request, please try again.',
+    'success_school_deleted' => 'School successfully deleted',
+    'error_school_not_found' => 'School not found or already deleted',
 ];

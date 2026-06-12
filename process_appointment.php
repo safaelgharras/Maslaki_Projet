@@ -1,4 +1,5 @@
 <?php
+require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
@@ -13,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Handle appointment creation
     if ($action === 'create') {
         if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-            header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+            header("Location: views/appointments.php?error=" . urlencode(__('error_invalid_request')));
             exit();
         }
 
@@ -22,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $time = $_POST['time'] ?? '';
 
         if (empty($title) || empty($date) || empty($time)) {
-            header("Location: views/appointments.php?error=" . urlencode('Tous les champs sont requis'));
+            header("Location: views/appointments.php?error=" . urlencode(__('error_all_fields_required')));
             exit();
         }
 
@@ -31,8 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute([$userId, $title, $date, $time]);
             
             // Add a notification for the student
-            $notifStmt = $pdo->prepare("INSERT INTO notifications (target_user_id, title, message, type, is_global) VALUES (?, 'Rendez-vous Confirmé', ?, 'system', 0)");
-            $notifStmt->execute([$userId, "Votre rendez-vous pour '$title' a été enregistré avec succès."]);
+            $notifStmt = $pdo->prepare("INSERT INTO notifications (target_user_id, title, message, type, is_global) VALUES (?, ?, ?, 'system', 0)");
+            $notifStmt->execute([$userId, __('notif_appointment_confirmed'), sprintf(__('notif_appointment_msg'), $title)]);
 
             header("Location: views/appointments.php?success=1");
         } catch (Exception $e) {
@@ -45,14 +46,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Handle appointment deletion
     if ($action === 'delete') {
         if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-            header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+            header("Location: views/appointments.php?error=" . urlencode(__('error_invalid_request')));
             exit();
         }
 
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
         if ($id <= 0) {
-            header("Location: views/appointments.php?error=" . urlencode('ID invalide'));
+            header("Location: views/appointments.php?error=" . urlencode(__('error_invalid_id')));
             exit();
         }
 
@@ -64,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->rowCount() > 0) {
                 header("Location: views/appointments.php?deleted=1");
             } else {
-                header("Location: views/appointments.php?error=" . urlencode('Rendez-vous introuvable'));
+                header("Location: views/appointments.php?error=" . urlencode(__('error_appointment_not_found')));
             }
         } catch (Exception $e) {
             error_log("Appointment deletion failed: " . $e->getMessage());
@@ -75,6 +76,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Invalid request
-header("Location: views/appointments.php?error=" . urlencode('Requête invalide'));
+header("Location: views/appointments.php?error=" . urlencode(__('error_invalid_request')));
 exit();
 ?>

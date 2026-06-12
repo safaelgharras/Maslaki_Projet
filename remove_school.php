@@ -1,4 +1,5 @@
 <?php
+require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";
 require_once "includes/csrf.php";
@@ -17,7 +18,7 @@ if (!require_method('POST', false) || !verify_csrf_token($_POST["csrf_token"] ??
     if (is_ajax_request()) {
         json_error('Invalid request', 403);
     }
-    header("Location: views/saved_schools.php?error=" . urlencode('Invalid request'));
+    header("Location: views/saved_schools.php?error=" . urlencode(__('error_invalid_request')));
     exit();
 }
 
@@ -27,7 +28,7 @@ if ($rawId === null || !is_numeric($rawId)) {
     if (is_ajax_request()) {
         json_error('Invalid school');
     }
-    header("Location: views/saved_schools.php?error=" . urlencode('Invalid school'));
+    header("Location: views/saved_schools.php?error=" . urlencode(__('error_invalid_school')));
     exit();
 }
 
@@ -43,7 +44,7 @@ if ($stmt->rowCount() > 0) {
     if (is_ajax_request()) {
         json_success('Ecole supprimee avec succes');
     }
-    header("Location: views/saved_schools.php?success=" . urlencode('Ecole supprimee avec succes'));
+    header("Location: views/saved_schools.php?success=" . urlencode(__('success_school_deleted')));
     exit();
 }
 
@@ -51,6 +52,6 @@ if ($stmt->rowCount() > 0) {
 if (is_ajax_request()) {
     json_error('Ecole introuvable ou deja supprimee', 404);
 }
-header("Location: views/saved_schools.php?error=" . urlencode('Ecole introuvable ou deja supprimee'));
+header("Location: views/saved_schools.php?error=" . urlencode(__('error_school_not_found')));
 exit();
 ?>

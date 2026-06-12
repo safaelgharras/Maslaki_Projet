@@ -570,10 +570,7 @@ body { overflow-y: auto !important; height: auto !important; margin: 0 !importan
             <div class="reg-checkbox">
                 <input type="checkbox" id="termsConsent" required>
                 <label for="termsConsent">
-                    <?php if(getLang()==='ar'): ?>أوافق على <a href="#">شروط الاستخدام</a> و<a href="#">سياسة الخصوصية</a>
-                    <?php elseif(getLang()==='en'): ?>I agree to the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>
-                    <?php else: ?>J'accepte les <a href="#">Conditions d'utilisation</a> et la <a href="#">Politique de confidentialité</a>
-                    <?php endif; ?>
+                    <?php echo __('terms_accept'); ?> <a href="#"><?php echo __('terms_of_use'); ?></a> <?php echo __('terms_and'); ?> <a href="#"><?php echo __('privacy_policy'); ?></a>
                 </label>
             </div>
 
@@ -597,8 +594,8 @@ body { overflow-y: auto !important; height: auto !important; margin: 0 !importan
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
         </svg>
-        <h4 style="font-size:1.2rem;font-weight:800;color:var(--text-dark);margin-bottom:4px;font-family:'Outfit',sans-serif;">Choisissez un compte</h4>
-        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;">pour continuer vers Maslaki <span style="background:var(--bg-light);color:#4285F4;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:700;">Mode Dev</span></p>
+        <h4 style="font-size:1.2rem;font-weight:800;color:var(--text-dark);margin-bottom:4px;font-family:'Outfit',sans-serif;"><?php echo __('google_choose_account'); ?></h4>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;"><?php echo __('google_continue_to'); ?> <span style="background:var(--bg-light);color:#4285F4;border-radius:4px;padding:1px 6px;font-size:0.75rem;font-weight:700;"><?php echo __('google_dev_mode'); ?></span></p>
         <div style="display:flex;flex-direction:column;gap:10px;">
             <?php
             $devAccounts = [

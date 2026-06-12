@@ -1,4 +1,5 @@
 <?php
+require_once "includes/lang_helper.php";
 require "config/DataBase.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -15,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $check->execute([$email]);
 
     if ($check->fetch()) {
-        header("Location: views/register.php?error=This email is already registered");
+        header("Location: views/register.php?error=" . urlencode(__('error_email_exists')));
         exit();
     }
 
@@ -27,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$name, $email, $hashedPassword, $bac_branch, $average, $city]);
 
-    header("Location: views/login.php?success=Registration successful! Please login.");
+    header("Location: views/login.php?success=" . urlencode(__('success_registration')));
     exit();
 }
 ?>
