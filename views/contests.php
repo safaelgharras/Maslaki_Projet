@@ -1,4 +1,5 @@
 <?php
+require_once "../includes/lang_helper.php";
 $pageTitle = __("all_contests");
 require "../includes/header.php";
 require "../config/DataBase.php";
