@@ -275,6 +275,7 @@ classDiagram
         +reviews() void
         +sendNotification() void
         +manageUsers() void
+        +addInstitution() void
     }
 
     %% Service dependencies
@@ -307,8 +308,10 @@ classDiagram
 
     AdminController --> DataBase : uses $pdo
     AdminController --> PlatformAdmin : require_platform_admin
+    AdminController --> CSRFProtection : csrf_token
     AdminController ..> Review : moderate
     AdminController ..> Notification : send
+    AdminController ..> Institution : creates
 
     %% Entity relationships
     Student "1" --> "0..*" Review : writes
@@ -375,4 +378,4 @@ classDiagram
 | **InstitutionController** | `views/institutions.php`, `views/institution_detail.php`, `search_ajax.php` | Liste filtrable, détails, recherche AJAX |
 | **DashboardController** | `views/dashboard.php`, `views/saved_schools.php`, `views/notifications.php`, `views/appointments.php` | Tableau de bord, favoris, notifications, rendez-vous |
 | **OrientationController** | `views/ai_form.php`, `ai_process.php`, `views/orientation_explore.php`, `views/domain_details.php`, `views/filiere_details.php` | Formulaire IA, résultats, exploration par domaine |
-| **AdminController** | `views/admin_dashboard.php`, `views/admin_reviews.php`, `views/admin_send_notification.php`, `views/admin_users_manage.php` | Dashboard admin, modération, notifications, gestion des rôles |
+| **AdminController** | `views/admin_dashboard.php`, `views/admin_reviews.php`, `views/admin_send_notification.php`, `views/admin_users_manage.php`, `views/admin_add_institution.php`, `process_add_institution.php` | Dashboard admin, modération, notifications, gestion des rôles, ajout d'établissement |

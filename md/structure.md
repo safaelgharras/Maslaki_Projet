@@ -14,6 +14,7 @@ Maslaki-projet/
 ├── ai_process.php                    ← AI orientation results page
 ├── submit_review.php                 ← POST: submit school review (CSRF-protected)
 ├── process_appointment.php           ← POST: create or delete appointment (CSRF-protected)
+├── process_add_institution.php       ← POST: add new institution (admin/superadmin, CSRF-protected)
 ├── migrate.php                       ← Manual migration runner (dev only)
 │
 │   ── Schools & Saved ─────────────────────────────────────────────────────────
@@ -91,6 +92,7 @@ Maslaki-projet/
 │   ├── admin_reviews.php             ← Approve/reject pending reviews (shows
 │   │                                     star ratings); POST+CSRF only
 │   ├── admin_send_notification.php   ← Broadcast notifications
+│   ├── admin_add_institution.php     ← Add new institution form (admin/superadmin)
 │   └── admin_dashboard.php           ← Platform management overview
 │
 │

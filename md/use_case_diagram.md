@@ -68,6 +68,7 @@ graph TB
             UC21[Envoyer une notification globale]
             UC22[Gérer les utilisateurs]
             UC23[Promouvoir un utilisateur admin]
+            UC25[Ajouter un établissement]
         end
 
         subgraph "Internationalisation"
@@ -104,6 +105,7 @@ graph TB
     Admin --> UC20
     Admin --> UC21
     Admin --> UC24
+    Admin --> UC25
 
     %% Superadmin
     Superadmin --> UC4
@@ -113,6 +115,7 @@ graph TB
     Superadmin --> UC22
     Superadmin --> UC23
     Superadmin --> UC24
+    Superadmin --> UC25
 
     %% Systèmes externes
     Google --> UC3
@@ -171,6 +174,7 @@ graph TB
 | UC21 | Envoyer une notification | Admin, Superadmin | Diffuser une notification globale ou ciblée aux étudiants |
 | UC22 | Gérer les utilisateurs | Superadmin | Voir la liste des utilisateurs et leurs rôles |
 | UC23 | Promouvoir admin | Superadmin | Attribuer ou retirer le rôle admin/superadmin à un utilisateur |
+| UC25 | Ajouter un établissement | Admin, Superadmin | Créer une nouvelle fiche d'établissement (nom, ville, type, diplôme, description, etc.) |
 
 ### Internationalisation
 
@@ -191,3 +195,4 @@ graph TB
 | UC16 → UC7 | <<extend>> | La soumission d'avis se fait depuis la page de détails |
 | UC23 → UC22 | <<extend>> | La promotion admin étend la gestion des utilisateurs |
 | UC14 → UC15 | <<extend>> | La gestion des RDV inclut la consultation et l'annulation |
+| UC25 → UC19 | <<extend>> | L'ajout d'établissement est accessible depuis le dashboard admin |
