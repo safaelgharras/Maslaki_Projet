@@ -159,6 +159,10 @@ require '../includes/header.php';
 
 .quick-card:hover::after { opacity: 1; }
 
+/* Institution card */
+.quick-card.q-institution { border-left-color: #10b981; }
+.quick-card.q-institution:hover { box-shadow: 0 20px 45px rgba(16,185,129,0.15); }
+
 /* Reviews card */
 .quick-card:nth-child(1) { border-left-color: #6366f1; }
 .quick-card:nth-child(1):hover { box-shadow: 0 20px 45px rgba(99,102,241,0.15); }
@@ -283,6 +287,15 @@ require '../includes/header.php';
                     <div class="q-info">
                         <h3><?php echo __('platform_admin_card_notifications_title'); ?></h3>
                         <p><?php echo __('platform_admin_card_notifications_desc'); ?></p>
+                    </div>
+                    <span class="q-arrow">→</span>
+                </a>
+
+                <a href="admin_add_institution.php" class="quick-card q-institution">
+                    <div class="q-icon">🏫</div>
+                    <div class="q-info">
+                        <h3><?php echo __('admin_card_add_institution_title'); ?></h3>
+                        <p><?php echo __('admin_card_add_institution_desc'); ?></p>
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
