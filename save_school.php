@@ -1,4 +1,12 @@
 <?php
+/**
+ * save_school.php — Toggle save/favorite an institution for the logged-in user.
+ *
+ * Handles both AJAX and standard POST requests.
+ * If the school is already saved, removes it (toggle behavior).
+ * If not saved, adds it to the saved_schools table.
+ * Supports both JSON responses (AJAX) and redirect responses (standard form).
+ */
 require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";

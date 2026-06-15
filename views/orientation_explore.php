@@ -1,4 +1,14 @@
 <?php
+/**
+ * orientation_explore.php — Orientation explorer: category cards grid.
+ *
+ * Displays all study categories (Sciences, Engineering, Health, etc.) as
+ * interactive cards. Clicking a card navigates to domain_details.php
+ * which shows the domains and filieres within that category.
+ *
+ * Data flow: categories table → localized names → card grid → domain_details.php
+ */
+
 require_once "../includes/lang_helper.php";
 $pageTitle = __("explore_orientation");
 require "../includes/header.php";
@@ -8,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Fetch all categories and localize their names
 $categories = $pdo->query("SELECT * FROM categories ORDER BY id ASC")->fetchAll();
 foreach ($categories as &$cat) {
     $cat['nom'] = getLocalizedDbField($cat, 'nom');
@@ -20,6 +31,7 @@ unset($cat);
     <div style="width: 80px; height: 4px; background: var(--orange); margin: 0 auto 20px auto; border-radius: 2px;"></div>
     <p class="section-subtitle" style="text-align:center; margin-bottom: 60px; font-size: 1.2rem; color: var(--text-muted); font-weight: 500;"><?php echo __('explore_domains_by_category'); ?></p>
 
+    <!-- Category cards grid — each card links to domain_details.php?id=category_id -->
     <div class="orientation-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-bottom: 60px;">
         <?php foreach($categories as $index => $cat): ?>
             <div class="category-card stagger-<?php echo ($index % 5) + 1; ?>" onclick="location.href='domain_details.php?id=<?php echo $cat['id']; ?>'">
@@ -34,6 +46,7 @@ unset($cat);
     </div>
 </div>
 
+<!-- Card hover animations and dark-mode overrides -->
 <style>
 .category-card {
     background: var(--white);
@@ -109,6 +122,7 @@ unset($cat);
     transform: translateY(-2px);
 }
 
+/* Dark mode overrides for category cards */
 [data-theme="dark"] .category-card { 
     background: #161e31; 
     border-color: #242f49;
@@ -124,6 +138,9 @@ unset($cat);
 </style>
 
 <?php
+/**
+ * Return an emoji icon for a given category ID (used in card headers).
+ */
 function getCategoryEmoji($id) {
     $emojis = [
         1 => "🔬", // Sciences Exactes & Technologies

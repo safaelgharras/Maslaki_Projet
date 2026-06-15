@@ -1,8 +1,30 @@
 <?php
+/**
+ * domain_details.php — Display all institutions for a specific domain.
+ *
+ * Shows a detailed hero section for the selected domain (from the domains table)
+ * along with a filterable grid of institutions offering filières in that domain.
+ * The page is accessed via ?id=N where N is the domain ID.
+ *
+ * Features:
+ * - Gradient hero with domain name, breadcrumb, and stats
+ * - City and sector (public/private) filters
+ * - Filière tag chips for sub-filtering within the domain
+ * - AJAX-powered institution cards loaded via search_ajax.php
+ * - Each card shows image, name, type, city, available filières, and threshold
+ *
+ * Data flow:
+ * 1. Validate domain ID from GET parameter
+ * 2. Fetch domain info with category join
+ * 3. Fetch filières belonging to this domain
+ * 4. Fetch cities for the filter dropdown
+ * 5. JavaScript fetches institution results via search_ajax.php with domain_id
+ */
 session_start();
 require "../config/DataBase.php";
 require_once "../includes/lang_helper.php";
 
+// Validate domain ID from URL parameter
 $domainId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($domainId <= 0) {
@@ -10,7 +32,7 @@ if ($domainId <= 0) {
     exit();
 }
 
-// Fetch domain info
+// Fetch domain info with parent category for breadcrumb display
 $stmt = $pdo->prepare("SELECT d.*, c.nom as category_name, c.nom_ar as category_name_ar, c.nom_en as category_name_en 
                        FROM domains d 
                        LEFT JOIN categories c ON d.categorie_id = c.id 
@@ -53,7 +75,10 @@ if ($isLoggedIn) {
     $savedIds = $pdo->query("SELECT institution_id FROM saved_schools WHERE student_id = " . $_SESSION['user_id'])->fetchAll(PDO::FETCH_COLUMN);
 }
 
-// Helper to resolve images (reusing logic from institutions.php)
+/**
+ * Resolve the card image for an institution on the domain details page.
+ * Checks DB image first, then standard name.ext patterns.
+ */
 function resolveDomainCardImage($name, $dbImage = null) {
     $name = trim((string) $name);
     $normalizedName = strtolower($name);
@@ -74,6 +99,7 @@ function resolveDomainCardImage($name, $dbImage = null) {
     return '../assets/images/default_school.jpg';
 }
 
+// Per-domain hero gradient styles — each domain ID gets a unique color scheme
 $domainStyles = [
     1 => 'background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(14,165,233,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.06\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center/cover;',
     2 => 'background: linear-gradient(135deg, rgba(24,24,27,0.95) 0%, rgba(234,88,12,0.85) 100%), url("data:image/svg+xml,%3Csvg width=\'52\' height=\'26\' viewBox=\'0 0 52 26\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z\' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E") center/cover;',

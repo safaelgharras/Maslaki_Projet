@@ -7,6 +7,7 @@
 | Table | Used in Code? | Status |
 |-------|---------------|--------|
 | `students` | ✅ | Registration, login, sessions, OAuth |
+| `admin_users` | ✅ | Platform admin access control |
 | `institutions` | ✅ | List, detail, search, AI, filters |
 | `saved_schools` | ✅ | Save, remove, dashboard count |
 | `ai_recommendations` | ✅ | Stores AI search results |
@@ -14,13 +15,22 @@
 | `reviews` | ✅ | Submit (with rating), approve, display |
 | `notifications` | ✅ | System, school, contest announcements |
 | `user_notifications` | ✅ | Per-user read/deleted state |
+| `admin_notifications` | ✅ | Internal admin alerts |
 | `contests` | ✅ | Contest list with deadlines |
+| `appointments` | ✅ | Orientation appointment booking |
+| `user_requests` | ✅ | Student support requests |
 | `villes` | ✅ | City filter, localization |
 | `categories` | ✅ | Category/sector filter |
 | `domains` | ✅ | Domain filter, orientation |
 | `filieres` | ✅ | Program details, orientation |
 | `bac_types` | ✅ | Bac type filter |
-| `organizer_staff` | ✅ | Platform admin access control |
+| `institution_filieres` | ✅ | Pivot: institution ↔ filieres |
+| `institution_bac_types` | ✅ | Pivot: institution ↔ bac types + min grade |
+| `institution_domain` | ✅ | Pivot: institution ↔ domains |
+| `institution_images` | ✅ | Institution gallery images |
+| `translations` | ✅ | i18n translation entries |
+| `premium_plans` | ✅ | Premium subscription plans |
+| `student_subscriptions` | ✅ | Student premium subscriptions |
 
 ---
 
@@ -86,7 +96,7 @@
 49. **Mark all read / delete notifications** ✔
 50. **Notification badges** — Unread count on bell icon ✔
 51. **Institution image resolver** — Smart fallback system for missing images ✔
-52. **Platform admin role** — Access control via `organizer_staff` table ✔
+52. **Platform admin role** — Access control via `admin_users` table (superadmin/manager) ✔
 
 ### Design (Navy + Orange)
 53. Complete CSS redesign matching Maslaki brand ✔
@@ -160,7 +170,9 @@
 | `ai_process.php` | AI orientation results |
 | `submit_review.php` | Review submission (POST+CSRF) |
 | `process_appointment.php` | Appointment create + delete (POST+CSRF, `action` field) |
-| `migrate.php` | Manual migration runner |
+| `process_add_institution.php` | Add new institution (admin, POST+CSRF) |
+| `chatbot.php` | Chatbot API endpoint |
+| `test_gemini.php` | Gemini API test/debug page |
 | `save_school.php` | Toggle saved school (POST/AJAX) |
 | `remove_school.php` | Remove saved school (POST/AJAX) |
 | `search_ajax.php` | AJAX institution search |
@@ -178,10 +190,11 @@
 2. **Copy `.env.example` → `.env`** and fill in:
    - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-3. **Import database** — run `database/maslaki_full_database.sql` in phpMyAdmin
-4. **Run the rating migration** — run `database/add_review_rating.sql`
-5. **Run other migrations as needed** — files in `database/` named `add_*`, `fix_*`, `ensure_*`
-6. **Configure OAuth** — set the redirect URI in Google Cloud Console
+3. **Import database** — run `database/main_database_schema.sql` in phpMyAdmin or via:
+   ```
+   mysql -u root -e "source c:/path/to/database/main_database_schema.sql"
+   ```
+4. **Configure OAuth** — set the redirect URI in Google Cloud Console
 
 ---
 
@@ -195,63 +208,4 @@
 
 ---
 
-*Last updated: 2026-06-09*
-│   ├── helpers.php              ← NEW: Shared utilities
-│   ├── csrf.php                 ← CSRF token generation/validation
-│   ├── lang_helper.php          ← Localization helpers
-│   ├── translations.php         ← Translation strings
-│   └── platform_admin.php       ← Admin role checks
-│
-├── lang/
-│   └── [Translation files]
-│
-├── database/
-│   ├── maslaki.sql              ← Base schema
-│   ├── maslaki_full_database.sql ← Complete DB dump
-│   ├── seed_deadlines.sql       ← Deadline seed data
-│   ├── seed_real_contests.sql   ← Contest seed data
-│   ├── notifications_setup.sql  ← Notification tables
-│   ├── [30+ migration files]
-│   └── update_institutions_info.php
-│
-├── admin/
-│   └── admin_migration.sql      ← Admin table setup
-│
-├── models/
-│   └── [Future model classes]
-│
-├── scratch/
-│   └── [Development/testing files]
-│
-└── md/
-    ├── structure.md             ← This file
-    ├── progress.md              ← Feature tracker
-    └── workflow.md              ← Development workflow
-```
-
----
-
-## 🚀 Setup Instructions
-
-1. **Clone/copy project** to web server directory
-2. **Copy `.env.example` to `.env`** and fill in:
-   - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
-   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-3. **Import database** — `database/maslaki_full_database.sql` in phpMyAdmin
-4. **Run migrations** — Visit `migrate.php` if needed
-5. **Set permissions** — Ensure `.env` is not web-accessible (ideally outside document root)
-6. **Configure OAuth** — Set redirect URI in Google Cloud Console
-
----
-
-## 📦 Dependencies
-
-- PHP 7.4+ (8.0+ recommended)
-- MySQL 5.7+ / MariaDB 10.3+
-- PDO extension
-- cURL extension (for Google OAuth)
-- Apache/Nginx with mod_rewrite
-
----
-
-*Last updated: 2026-06-02 — Security hardening complete*
+*Last updated: 2026-06-14*

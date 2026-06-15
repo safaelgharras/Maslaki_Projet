@@ -1,4 +1,12 @@
 <?php
+/**
+ * contests.php — Display the list of access contests for all institutions.
+ *
+ * Joins contests with institutions to show school name, city, and image.
+ * Each card shows: status badge, title, institution, registration deadline,
+ * exam date, description, and a link to the school's detail page.
+ */
+
 require_once "../includes/lang_helper.php";
 $pageTitle = __("all_contests");
 require "../includes/header.php";
@@ -6,7 +14,7 @@ require "../config/DataBase.php";
 
 $isLoggedIn = isset($_SESSION['user_id']);
 
-// Get all contests
+// Fetch all contests with their parent institution info, sorted by deadline
 $stmt = $pdo->query("SELECT c.*, i.name, i.name_ar, i.name_en, i.city, i.city_ar, i.city_en, i.image FROM contests c JOIN institutions i ON c.institution_id = i.id ORDER BY c.registration_deadline ASC");
 $contests = $stmt->fetchAll();
 ?>

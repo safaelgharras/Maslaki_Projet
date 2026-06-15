@@ -1,9 +1,18 @@
 <?php
+/**
+ * dashboard.php — Student dashboard page.
+ *
+ * Shows a personalized welcome banner, quick stats (saved schools count,
+ * total institutions), upcoming deadlines for saved schools, and
+ * upcoming contests. Serves as the main hub after login.
+ */
+
 require_once "../includes/lang_helper.php";
 $pageTitle = __("profile");
 require "../includes/header.php";
 require "../config/DataBase.php";
 
+// Redirect guests to login
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit();
@@ -11,15 +20,15 @@ if (!isset($_SESSION["user_id"])) {
 
 $userId = $_SESSION["user_id"];
 
-// Get saved schools count
+// Count how many schools this student has saved
 $savedCount = $pdo->prepare("SELECT COUNT(*) FROM saved_schools WHERE student_id = ?");
 $savedCount->execute([$userId]);
 $savedNum = $savedCount->fetchColumn();
 
-// Get total institutions
+// Total institutions available on the platform
 $totalSchools = $pdo->query("SELECT COUNT(*) FROM institutions")->fetchColumn();
 
-// Get upcoming deadlines for saved schools
+// Get up to 5 upcoming deadlines for the student's saved schools
 $upcomingDeadlines = [];
 try {
     $deadlineSql = "SELECT i.name, i.city, d.deadline_date

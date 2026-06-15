@@ -44,6 +44,14 @@ erDiagram
         string nom_en
     }
 
+    DOMAIN {
+        int id PK
+        string nom
+        string nom_ar
+        string nom_en
+        text description
+    }
+
     BAC_TYPE {
         int id PK
         string code
@@ -162,6 +170,23 @@ erDiagram
         date deadline_date
     }
 
+    INSTITUTION_IMAGE {
+        int id PK
+        string image_path
+        boolean is_main
+    }
+
+    INSTITUTION_BAC_TYPE {
+        int institution_id PK,FK
+        int bac_type_id PK,FK
+        float min_grade
+    }
+
+    INSTITUTION_DOMAIN {
+        int institution_id PK,FK
+        int domain_id PK,FK
+    }
+
     SAVED_SCHOOL {
         int id PK
         timestamp created_at
@@ -192,7 +217,8 @@ erDiagram
     %% ── Relations ──
 
     VILLE ||--o{ INSTITUTION : "abrite (1,N)"
-    CATEGORY ||--o{ FILIERE : "regroupe (1,N)"
+    CATEGORY ||--o{ DOMAIN : "regroupe (1,N)"
+    DOMAIN ||--o{ FILIERE : "contient (1,N)"
     INSTITUTION }o..o{ FILIERE : "propose (N,M)"
     STUDENT ||--o{ REVIEW : "redige (0,N)"
     INSTITUTION ||--o{ REVIEW : "recoit (0,N)"
@@ -204,9 +230,11 @@ erDiagram
     STUDENT ||--o{ APPOINTMENT : "reserve (0,N)"
     INSTITUTION ||--o{ CONTEST : "organise (0,N)"
     INSTITUTION ||--o{ DEADLINE : "possede (0,N)"
+    INSTITUTION ||--o{ INSTITUTION_IMAGE : "possede (0,N)"
+    INSTITUTION }o..o{ BAC_TYPE : "accepte via INSTITUTION_BAC_TYPE (N,M)"
+    INSTITUTION }o..o{ DOMAIN : "classe par INSTITUTION_DOMAIN (N,M)"
     STUDENT ||--o{ STUDENT_SUBSCRIPTION : "souscrit (0,N)"
     PREMIUM_PLAN ||--o{ STUDENT_SUBSCRIPTION : "correspond a (1,N)"
-    INSTITUTION }o..o{ BAC_TYPE : "accepte (N,M)"
 ```
 
 ---
@@ -219,6 +247,7 @@ erDiagram
 | **ADMIN_USER** | Administrateur de la plateforme (superadmin ou manager) |
 | **VILLE** | Référentiel géographique des villes marocaines |
 | **CATEGORY** | Grand domaine d'études (Sciences, Santé, Informatique…) |
+| **DOMAIN** | Sous-domaine d'études rattaché à une catégorie (ex: Génie Informatique, Génie Civil…) |
 | **BAC_TYPE** | Séries de baccalauréat marocain (SMA, PC, SVT, ECO…) |
 | **INSTITUTION** | Établissement d'enseignement supérieur (ENSA, ENCG, FST, EST…) |
 | **FILIERE** | Spécialité / programme d'études |
@@ -231,6 +260,9 @@ erDiagram
 | **APPOINTMENT** | Rendez-vous d'orientation réservé par un étudiant |
 | **CONTEST** | Concours d'accès organisé par un établissement |
 | **DEADLINE** | Date limite de candidature pour un établissement |
+| **INSTITUTION_IMAGE** | Image supplémentaire d'un établissement (galerie photos) |
+| **INSTITUTION_BAC_TYPE** | Table pivot : types de bac acceptés par un établissement avec note minimale |
+| **INSTITUTION_DOMAIN** | Table pivot : domaines d'études associés à un établissement |
 | **SAVED_SCHOOL** | Association entre un étudiant et ses écoles favorites |
 | **TRANSLATION** | Entrée du dictionnaire de traduction (clé/valeur par langue) |
 | **PREMIUM_PLAN** | Plan d'abonnement premium (tarif, durée, fonctionnalités) |
@@ -243,7 +275,8 @@ erDiagram
 | Association | Entités | Cardinalités | Description |
 |---|---|---|---|
 | **abrite** | VILLE ↔ INSTITUTION | 1,N / 0,1 | Une ville abrite plusieurs institutions |
-| **regroupe** | CATEGORY ↔ FILIERE | 1,N / 0,1 | Une catégorie regroupe plusieurs filières |
+| **regroupe** | CATEGORY ↔ DOMAIN | 1,N / 0,1 | Une catégorie regroupe plusieurs domaines |
+| **contient** | DOMAIN ↔ FILIERE | 1,N / 0,1 | Un domaine contient plusieurs filières |
 | **propose** | INSTITUTION ↔ FILIERE | N,M | Une institution propose plusieurs filières ; une filière est offerte par plusieurs institutions |
 | **rédige** | STUDENT → REVIEW | 0,N | Un étudiant rédige plusieurs avis |
 | **reçoit** | INSTITUTION → REVIEW | 0,N | Une institution reçoit plusieurs avis |
@@ -255,6 +288,8 @@ erDiagram
 | **réserve** | STUDENT → APPOINTMENT | 0,N | Un étudiant réserve plusieurs rendez-vous |
 | **organise** | INSTITUTION → CONTEST | 0,N | Une institution organise plusieurs concours |
 | **possède** | INSTITUTION → DEADLINE | 0,N | Une institution a plusieurs dates limites |
+| **possède (images)** | INSTITUTION → INSTITUTION_IMAGE | 0,N | Une institution a plusieurs images de galerie |
+| **accepte** | INSTITUTION ↔ BAC_TYPE | N,M | Via INSTITUTION_BAC_TYPE avec note minimale requise |
+| **classé par** | INSTITUTION ↔ DOMAIN | N,M | Via INSTITUTION_DOMAIN : une institution couvre plusieurs domaines |
 | **souscrit** | STUDENT → STUDENT_SUBSCRIPTION | 0,N | Un étudiant a un historique de souscriptions |
 | **correspond à** | PREMIUM_PLAN → STUDENT_SUBSCRIPTION | 1,N | Un plan correspond à plusieurs souscriptions |
-| **accepte** | INSTITUTION ↔ BAC_TYPE | N,M | Une institution accepte plusieurs types de bac |

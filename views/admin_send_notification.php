@@ -1,15 +1,33 @@
 <?php
+/**
+ * admin_send_notification.php — Admin page to broadcast or target notifications.
+ *
+ * Allows platform admins to create a new notification with:
+ *   - Title and message in 3 languages (FR, AR, EN)
+ *   - Type (system, school, filiere, announcement, maintenance, orientation, deadline)
+ *   - Target: all students (global) or a specific student
+ *   - Optional related link
+ *
+ * The notification is inserted into the `notifications` table.
+ * Protected by CSRF token and platform_admin role check.
+ */
+
 require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
 require_once "../includes/csrf.php";
+
+// Block access for non-admin users
 require_platform_admin($pdo);
 
 $successMsg = "";
-$errorMsg = "";
+$errorMsg   = "";
+
+// Allowed notification types (must match the ENUM in the DB)
 $allowedTypes = ['system', 'school', 'filiere', 'announcement', 'maintenance', 'orientation', 'deadline'];
 $notificationColumns = [];
 
+// Discover actual columns in the notifications table (for optional _ar/_en fields)
 try {
     $columnStmt = $pdo->query("SHOW COLUMNS FROM notifications");
     foreach ($columnStmt->fetchAll(PDO::FETCH_ASSOC) as $column) {
@@ -19,21 +37,25 @@ try {
     $errorMsg = __('admin_notif_error_db_structure') . ' : ' . $e->getMessage();
 }
 
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Verify CSRF token
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
         $errorMsg = __('admin_notif_error_csrf');
     }
 
-    $title = trim($_POST["title"] ?? "");
-    $titleAr = trim($_POST["title_ar"] ?? "");
-    $titleEn = trim($_POST["title_en"] ?? "");
-    $message = trim($_POST["message"] ?? "");
+    // Collect form fields (trilingual title/message + type/link/target)
+    $title    = trim($_POST["title"] ?? "");
+    $titleAr  = trim($_POST["title_ar"] ?? "");
+    $titleEn  = trim($_POST["title_en"] ?? "");
+    $message  = trim($_POST["message"] ?? "");
     $messageAr = trim($_POST["message_ar"] ?? "");
     $messageEn = trim($_POST["message_en"] ?? "");
-    $type = $_POST["type"] ?? "system";
-    $link = trim($_POST["link"] ?? "");
+    $type   = $_POST["type"] ?? "system";
+    $link   = trim($_POST["link"] ?? "");
     $target = $_POST["target"] ?? "all";
 
+    // Validation: required fields, valid type, valid target
     if ($errorMsg === "" && ($title === "" || $message === "")) {
         $errorMsg = __('admin_notif_error_required');
     } elseif ($errorMsg === "" && !in_array($type, $allowedTypes, true)) {
@@ -42,9 +64,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errorMsg = __('admin_notif_error_target');
     } elseif ($errorMsg === "") {
         try {
+            // Build dynamic INSERT with only columns that exist in the table
             $columns = ['title', 'message', 'type', 'related_link', 'is_global'];
-            $values = [$title, $message, $type, $link !== "" ? $link : null, $target === "all" ? 1 : 0];
+            $values  = [$title, $message, $type, $link !== "" ? $link : null, $target === "all" ? 1 : 0];
 
+            // Add localized columns if they exist in the schema
             foreach ([
                 'title_ar' => $titleAr,
                 'title_en' => $titleEn,
@@ -53,13 +77,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ] as $column => $value) {
                 if (isset($notificationColumns[$column])) {
                     $columns[] = $column;
-                    $values[] = $value !== "" ? $value : null;
+                    $values[]  = $value !== "" ? $value : null;
                 }
             }
 
+            // If targeting a specific student, add target_user_id
             if ($target !== "all") {
                 $columns[] = 'target_user_id';
-                $values[] = (int) $target;
+                $values[]  = (int) $target;
             }
 
             $placeholders = implode(', ', array_fill(0, count($columns), '?'));
@@ -72,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
+// Fetch all students for the target dropdown
 try {
     $students = $pdo->query("SELECT id, name, email FROM students ORDER BY name ASC")->fetchAll();
 } catch (Exception $e) {

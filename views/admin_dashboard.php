@@ -1,4 +1,19 @@
 <?php
+/**
+ * admin_dashboard.php — Platform administration dashboard.
+ *
+ * Central hub for admin/superadmin users to access management tools:
+ * - Review moderation (admin_reviews.php)
+ * - Send notifications (admin_send_notification.php)
+ * - Add new institutions (admin_add_institution.php)
+ * - User role management (admin_users_manage.php) — superadmin only
+ *
+ * Access control:
+ * - require_platform_admin() ensures only admin or superadmin roles can view
+ * - The user management card is conditionally shown only to superadmins
+ *
+ * The page displays a welcome banner and a grid of quick-access tool cards.
+ */
 require_once '../includes/lang_helper.php';
 require '../config/DataBase.php';
 require_once '../includes/platform_admin.php';

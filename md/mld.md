@@ -23,10 +23,19 @@ erDiagram
     institutions ||--o{ contests : "institution_id"
     institutions ||--o{ deadlines : "institution_id"
     institutions ||--o{ institution_filieres : "institution_id"
+    institutions ||--o{ institution_bac_types : "institution_id"
+    institutions ||--o{ institution_domain : "institution_id"
+    institutions ||--o{ institution_images : "institution_id"
     institutions }o--o| villes : "ville_id"
 
     filieres ||--o{ institution_filieres : "filiere_id"
     filieres }o--o| categories : "categorie_id"
+    filieres }o--o| domains : "domain_id"
+
+    categories ||--o{ domains : "categorie_id"
+
+    bac_types ||--o{ institution_bac_types : "bac_type_id"
+    domains ||--o{ institution_domain : "domain_id"
 
     notifications ||--o{ user_notifications : "notification_id"
 
@@ -85,6 +94,20 @@ erDiagram
 
 ---
 
+### domains
+| Colonne | Type | Contrainte |
+|---|---|---|
+| <u>id</u> | INT | PK, AUTO_INCREMENT |
+| **#categorie_id** | INT | FK → categories(id) ON DELETE SET NULL |
+| nom | VARCHAR(150) | NOT NULL |
+| nom_ar | VARCHAR(150) | |
+| nom_en | VARCHAR(150) | |
+| description | TEXT | |
+
+**Contrainte unique** : UNIQUE(nom, categorie_id)
+
+---
+
 ### bac_types
 | Colonne | Type | Contrainte |
 |---|---|---|
@@ -137,6 +160,7 @@ erDiagram
 | description | TEXT | |
 | description_ar | TEXT | |
 | description_en | TEXT | |
+| **#domain_id** | INT | FK → domains(id) ON DELETE SET NULL |
 | **#categorie_id** | INT | FK → categories(id) ON DELETE SET NULL |
 
 ---
@@ -146,6 +170,33 @@ erDiagram
 |---|---|---|
 | <u>**#institution_id**</u> | INT | PK, FK → institutions(id) ON DELETE CASCADE |
 | <u>**#filiere_id**</u> | INT | PK, FK → filieres(id) ON DELETE CASCADE |
+
+---
+
+### institution_bac_types (table pivot)
+| Colonne | Type | Contrainte |
+|---|---|---|
+| <u>**#institution_id**</u> | INT | PK, FK → institutions(id) ON DELETE CASCADE |
+| <u>**#bac_type_id**</u> | INT | PK, FK → bac_types(id) ON DELETE CASCADE |
+| min_grade | FLOAT | Note minimale requise pour ce type de bac |
+
+---
+
+### institution_domain (table pivot)
+| Colonne | Type | Contrainte |
+|---|---|---|
+| <u>**#institution_id**</u> | INT | PK, FK → institutions(id) ON DELETE CASCADE |
+| <u>**#domain_id**</u> | INT | PK, FK → domains(id) ON DELETE CASCADE |
+
+---
+
+### institution_images
+| Colonne | Type | Contrainte |
+|---|---|---|
+| <u>id</u> | INT | PK, AUTO_INCREMENT |
+| **#institution_id** | INT | FK → institutions(id) ON DELETE CASCADE |
+| image_path | VARCHAR(255) | NOT NULL |
+| is_main | TINYINT(1) | DEFAULT 0 |
 
 ---
 

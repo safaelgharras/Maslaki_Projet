@@ -1,3 +1,10 @@
+<!-- 
+    footer.php — Shared page footer for all views.
+    
+    Contains: Maslaki branding, navigation links, resources, contact info,
+    social media links, language switcher, and dark mode toggle.
+    Uses $base variable (set by each page) for correct relative paths.
+-->
 </main>
 
 <footer class="main-footer">

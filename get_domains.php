@@ -1,4 +1,12 @@
 <?php
+/**
+ * get_domains.php — AJAX endpoint returning domains and filières for a category.
+ *
+ * Accepts GET parameter ?cat_id=N (category ID).
+ * Returns a deduplicated JSON array of domains and filières belonging to
+ * that category, with localized names. Used by institutions.php and
+ * orientation_explore.php to populate the domain filter dropdown.
+ */
 require "config/DataBase.php";
 
 $cat_id = isset($_GET['cat_id']) ? intval($_GET['cat_id']) : 0;

@@ -6,6 +6,7 @@ Maslaki-projet/
 ├── .env                              ← Runtime credentials (DB, OAuth) — NOT committed
 ├── .env.example                      ← Credential template — safe to commit
 ├── .gitignore                        ← Ignores .env, logs, desktop.ini
+├── USAGE_REPORT.md                   ← Feature usage report
 │
 ├── index.php                         ← Landing page: hero, stats, popular schools
 ├── login_process.php                 ← POST: authenticate student
@@ -15,7 +16,8 @@ Maslaki-projet/
 ├── submit_review.php                 ← POST: submit school review (CSRF-protected)
 ├── process_appointment.php           ← POST: create or delete appointment (CSRF-protected)
 ├── process_add_institution.php       ← POST: add new institution (admin/superadmin, CSRF-protected)
-├── migrate.php                       ← Manual migration runner (dev only)
+├── chatbot.php                       ← Chatbot API endpoint
+├── test_gemini.php                   ← Gemini API test/debug page
 │
 │   ── Schools & Saved ─────────────────────────────────────────────────────────
 ├── save_school.php                   ← POST/AJAX: toggle saved school
@@ -54,8 +56,13 @@ Maslaki-projet/
 │   ├── footer.php                    ← Page footer
 │   ├── csrf.php                      ← CSRF token generation + verify_csrf_token()
 │   ├── lang_helper.php               ← __(), getLocalizedDbField(), lang switch
-│   ├── translations.php              ← Translation strings (fr/ar/en)
+│   ├── chatbot.php                   ← Chatbot rendering + logic
 │   └── platform_admin.php            ← is_platform_admin(), require_platform_admin()
+│
+│
+├── services/
+│   └── GeminiService.php             ← Google Gemini AI API integration with
+│                                         retry, multi-model fallback
 │
 │
 ├── views/
@@ -77,7 +84,7 @@ Maslaki-projet/
 │   ├── institutions.php              ← Filterable school card grid (AJAX)
 │   ├── institution_detail.php        ← Full school page: info, filieres,
 │   │                                     reviews (star rating UI), sub-schools,
-│   │                                     bac requirements
+│   │                                     bac requirements, image gallery
 │   │
 │   │   ── Orientation ─────────────────────────────────────────────────────
 │   ├── ai_form.php                   ← AI orientation input form
@@ -89,19 +96,22 @@ Maslaki-projet/
 │   ├── contests.php                  ← Contest list with deadlines
 │   │
 │   │   ── Admin ───────────────────────────────────────────────────────────
+│   ├── admin_dashboard.php           ← Platform management overview
 │   ├── admin_reviews.php             ← Approve/reject pending reviews (shows
 │   │                                     star ratings); POST+CSRF only
 │   ├── admin_send_notification.php   ← Broadcast notifications
 │   ├── admin_add_institution.php     ← Add new institution form (admin/superadmin)
-│   └── admin_dashboard.php           ← Platform management overview
+│   └── admin_users_manage.php        ← User role management (superadmin only)
 │
 │
 ├── assets/
 │   ├── css/
-│   │   └── style.css                 ← Design system (Navy + Orange, dark mode,
+│   │   ├── style.css                 ← Design system (Navy + Orange, dark mode,
 │   │                                     responsive, card components)
+│   │   └── chatbot.css               ← Chatbot widget styles
 │   ├── js/
-│   │   └── script.js                 ← Client-side logic
+│   │   ├── script.js                 ← Client-side logic
+│   │   └── chatbot.js                ← Chatbot frontend JS
 │   └── images/
 │       ├── Institutions/             ← School logo images (~100 files,
 │       │                                 mixed case: .png .jpg .webp .WEBP .PNG)
@@ -117,49 +127,9 @@ Maslaki-projet/
 │
 │
 ├── database/
-│   │   ── Core ──────────────────────────────────────────────────────────────
-│   ├── maslaki.sql                   ← Base schema
-│   ├── maslaki_full_database.sql     ← Full DB dump (schema + seed data)
-│   │
-│   │   ── Schema Migrations ─────────────────────────────────────────────────
-│   ├── schema_update.sql             ← Core schema additions
-│   ├── features_update.sql           ← Feature column additions
-│   ├── fix_missing_tables.sql        ← Adds tables that were absent
-│   ├── fix_missing_images.sql        ← Image path corrections
-│   ├── fix_seuil.sql                 ← Admission threshold fixes
-│   ├── add_review_rating.sql         ← Adds rating column to reviews table
-│   ├── add_superadmin_role.sql       ← Adds superadmin role to students table
-│   ├── ensure_translations_columns.sql ← Guarantees _ar/_en columns exist
-│   ├── map_villes.sql                ← Maps institutions to villes table
-│   ├── reorganize_domains.sql        ← Domain structure migration
-│   ├── setup_logic_relationships.sql ← FK and pivot table setup
-│   ├── cleanup_duplicates.sql        ← Deduplication script
-│   │
-│   │   ── Seed Data ────────────────────────────────────────────────────────
-│   ├── seed_deadlines.sql            ← Deadline data
-│   ├── seed_real_contests.sql        ← Contest data
-│   ├── fill_info.sql                 ← Fills missing institution fields
-│   ├── populate_orientation_data.sql ← Category/domain/filiere data
-│   ├── notifications_setup.sql       ← Notification tables + initial data
-│   │
-│   │   ── Translations ─────────────────────────────────────────────────────
-│   ├── bac_localization.sql          ← Bac type translations
-│   ├── english_localization.sql      ← English translation entries
-│   ├── localization_update.sql       ← General localization patches
-│   ├── translate_descriptions.sql    ← Institution description translations
-│   ├── translate_filieres.sql        ← Filiere name translations
-│   ├── translate_institution_details.sql ← Detail field translations
-│   ├── translate_notifications.sql   ← Notification message translations
-│   ├── update_translations_notif_contests.sql ← Contest/notif translation updates
-│   │
-│   └── update_institutions_info.php  ← Programmatic data updater script
+│   └── main_database_schema.sql      ← Single source of truth: all 25 tables,
+│                                         PKs, FKs, UNIQUE indexes, and seed data
 │
-│
-├── admin/
-│   └── admin_migration.sql           ← Admin role table + initial staff setup
-│
-├── models/
-│   └── (empty — reserved for future model classes)
 │
 ├── Rapport de PFE/
 │   └── (project report documents)
@@ -167,7 +137,14 @@ Maslaki-projet/
 └── md/
     ├── structure.md                  ← This file
     ├── progress.md                   ← Feature tracker + changelog
-    └── workflow.md                   ← Development workflow guide
+    ├── how_it_works.md               ← Detailed code walkthrough
+    ├── workflow.md                   ← Development workflow guide
+    ├── cahier_des_charges.md         ← Project specification document
+    ├── mcd.md                        ← Conceptual data model (MCD)
+    ├── mld.md                        ← Logical data model (MLD)
+    ├── mcd_mld.md                    ← Combined MCD/MLD reference
+    ├── class_diagram.md              ← UML class diagram
+    └── use_case_diagram.md           ← UML use case diagram
 ```
 
 ---

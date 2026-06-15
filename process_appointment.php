@@ -1,4 +1,14 @@
 <?php
+/**
+ * process_appointment.php — Create or delete orientation appointments.
+ *
+ * Handles POST actions from views/appointments.php:
+ * - action=create: Insert a new appointment with pending status, send a confirmation notification
+ * - action=delete: Delete an appointment with ownership verification
+ *
+ * Both actions require CSRF validation and authentication.
+ * Redirects back to appointments.php with flash messages on success/error.
+ */
 require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";

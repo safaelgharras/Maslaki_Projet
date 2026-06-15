@@ -1,11 +1,24 @@
 <?php
+/**
+ * admin_reviews.php — Admin panel for moderating student reviews.
+ *
+ * Displays two sections:
+ *   1. Pending reviews — with Approve / Reject (CSRF-protected POST) buttons
+ *   2. Approved reviews — read-only list (last 20)
+ *
+ * Approving sets status='approved'; rejecting deletes the review entirely.
+ * Requires platform admin role (superadmin or manager).
+ */
+
 require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
 require_once "../includes/csrf.php";
+
+// Block non-admin access
 require_platform_admin($pdo);
 
-// Handle approve/reject actions
+// Handle approve/reject POST actions with CSRF verification
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!verify_csrf_token($_POST["csrf_token"] ?? null)) {
         header("Location: admin_reviews.php?error=" . urlencode(__('admin_reviews_error_csrf')));
@@ -15,6 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $reviewId = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
     $action = $_POST['action'] ?? '';
 
+    // Approve: set status to 'approved'
     if ($reviewId > 0 && $action === 'approve') {
         $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
         $stmt->execute([$reviewId]);
@@ -22,6 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
+    // Reject: delete the review entirely from the database
     if ($reviewId > 0 && $action === 'reject') {
         $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
         $stmt->execute([$reviewId]);
@@ -36,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 $pageTitle = __("platform_admin_reviews_page_title");
 require "../includes/header.php";
 
-// Get all pending reviews
+// Get all pending reviews with author and institution names
 $pendingSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
                FROM reviews 
                LEFT JOIN students ON reviews.student_id = students.id
@@ -46,7 +61,7 @@ $pendingSql = "SELECT reviews.*, students.name AS author_name, institutions.name
 $pendingStmt = $pdo->query($pendingSql);
 $pendingReviews = $pendingStmt->fetchAll();
 
-// Get all approved reviews
+// Get the 20 most recent approved reviews
 $approvedSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
                 FROM reviews 
                 LEFT JOIN students ON reviews.student_id = students.id

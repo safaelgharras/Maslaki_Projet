@@ -1,4 +1,29 @@
 <?php
+/**
+ * header.php — Shared HTML head, navbar, and notification system.
+ *
+ * Included by every page via require. Provides:
+ * - Session initialization and database connection
+ * - Language detection and localization setup
+ * - Unread notification count query (via user_notifications pivot)
+ * - User profile data (role, avatar, initials)
+ * - Platform admin detection for navbar badge
+ *
+ * HTML structure:
+ * - <head> with meta tags, title, CSS link, and theme initialization script
+ * - <nav> with: logo, nav links (Home, Institutions, Orientation, AI)
+ * - Notification bell with dropdown (AJAX polling every 30s)
+ * - User profile dropdown with: admin link, dashboard, theme switch, language selector, logout
+ * - Theme switching (light/dark via localStorage)
+ * - Language switching (FR/EN/AR with page reload)
+ * - Mobile responsive menu toggle
+ *
+ * JavaScript features:
+ * - Notification polling and toast popups
+ * - Mark notifications as read (individual or all)
+ * - Theme toggle with localStorage persistence
+ * - Language change with fade transition
+ */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -6,17 +31,18 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . "/../config/DataBase.php";
 require_once __DIR__ . "/lang_helper.php";
 
-// Detect base path
+// Detect base path for assets (different for root vs views/ directory)
 $isInViews = strpos($_SERVER['PHP_SELF'], '/views/') !== false;
 $base = $isInViews ? '../' : '';
 
-// Get unread notifications count (New Schema); detect platform admin (organizer staff)
+// Get unread notifications count and user profile data
+// Uses LEFT JOIN on user_notifications pivot to handle both global and targeted notifications
 $unreadCount = 0;
 $isPlatformAdmin = false;
 if (isset($_SESSION['user_id'])) {
     try {
         $userId = $_SESSION['user_id'];
-        $sql = "SELECT COUNT(*) FROM notifications n
+        $sql = "SELECT COUNT(DISTINCT n.id) FROM notifications n
                 LEFT JOIN user_notifications un ON n.id = un.notification_id AND un.user_id = ?
                 WHERE (n.is_global = 1 OR n.target_user_id = ?)
                 AND (un.is_read IS NULL OR un.is_read = 0)
@@ -409,7 +435,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 element.classList.remove('unread');
                 checkNotifications();
                 if (link && link !== 'null') {
-                    window.location.href = base + link;
+                    // Don't prepend base for absolute external URLs
+                    if (link.match(/^https?:\/\//i)) {
+                        window.open(link, '_blank');
+                    } else {
+                        window.location.href = base + link;
+                    }
                 }
             });
     }

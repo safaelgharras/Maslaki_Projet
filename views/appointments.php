@@ -1,10 +1,25 @@
 <?php
+/**
+ * appointments.php — Manage orientation appointments.
+ *
+ * Allows logged-in students to:
+ * - Book new orientation appointments (date, time, subject)
+ * - View their upcoming appointments with status badges
+ * - Delete appointments they no longer need
+ *
+ * The page is split into two sections:
+ * 1. Left: A form to create a new appointment (posts to process_appointment.php)
+ * 2. Right: A list of existing appointments with date, title, time, status, and delete button
+ *
+ * Status values: pending, confirmed, cancelled (displayed via translation keys)
+ */
 require_once "../includes/lang_helper.php";
 $pageTitle = __('my_appointments');
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/csrf.php";
 
+// Only logged-in students can manage appointments
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit();

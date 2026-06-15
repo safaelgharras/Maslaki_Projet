@@ -1,4 +1,14 @@
 <?php
+/**
+ * notifications.php — Full notification center page for logged-in students.
+ *
+ * Shows all notifications (global + targeted) with type-based filtering
+ * (all, announcement, school, deadline, system). Supports:
+ *   - Mark individual / all as read
+ *   - Delete notifications (soft-delete via AJAX)
+ *   - External link detection (don't prepend $base to absolute URLs)
+ */
+
 session_start();
 require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
@@ -7,26 +17,28 @@ $pageTitle = __('notifications');
 $base = "../";
 require "../includes/header.php";
 
+// Redirect guests to login
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$userId = $_SESSION['user_id'];
+$userId     = $_SESSION['user_id'];
 $typeFilter = isset($_GET['type']) ? $_GET['type'] : 'all';
 
-// Fetch notifications
+// Build notification query: global + targeted, exclude soft-deleted, GROUP BY for dedup
 $sql = "SELECT n.*, COALESCE(un.is_read, 0) as is_read
         FROM notifications n
         LEFT JOIN user_notifications un ON n.id = un.notification_id AND un.user_id = ?
         WHERE (n.is_global = 1 OR n.target_user_id = ?)
         AND (un.is_deleted IS NULL OR un.is_deleted = 0)";
 
+// Apply optional type filter
 if ($typeFilter !== 'all') {
     $sql .= " AND n.type = ?";
 }
 
-$sql .= " ORDER BY n.created_at DESC";
+$sql .= " GROUP BY n.id ORDER BY n.created_at DESC";
 
 $stmt = $pdo->prepare($sql);
 if ($typeFilter !== 'all') {
@@ -36,6 +48,9 @@ if ($typeFilter !== 'all') {
 }
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+/**
+ * Return an emoji icon based on the notification type.
+ */
 function getNotifIcon($type) {
     switch($type) {
         case 'system': return '⚙️';
@@ -82,7 +97,14 @@ function getNotifIcon($type) {
                         <div class="notif-full-footer">
                             <div class="notif-actions">
                                 <?php if ($n['related_link']): ?>
-                                    <a href="<?php echo $base . $n['related_link']; ?>" class="btn btn-primary btn-small"><?php echo __('see_more'); ?></a>
+                                    <?php
+                                        // Don't prepend base for absolute external URLs
+                                        $linkHref = $n['related_link'];
+                                        if (!preg_match('#^https?://#i', $linkHref)) {
+                                            $linkHref = $base . $linkHref;
+                                        }
+                                    ?>
+                                    <a href="<?php echo htmlspecialchars($linkHref); ?>" class="btn btn-primary btn-small"><?php echo __('see_more'); ?></a>
                                 <?php endif; ?>
                                 <?php if ($n['is_read'] == 0): ?>
                                     <button class="btn btn-outline-secondary btn-small" onclick="markRead(<?php echo $n['id']; ?>)"><?php echo __('mark_as_read'); ?></button>

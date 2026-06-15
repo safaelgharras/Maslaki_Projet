@@ -109,12 +109,21 @@ classDiagram
         +string $name_ar
         +string $name_en
         +string $city
+        +string $city_ar
+        +string $city_en
+        +int $ville_id
         +string $type
         +float $seuil
         +float $min_average
         +text $description
+        +text $description_ar
+        +text $description_en
         +text $requirements
+        +text $requirements_ar
+        +text $requirements_en
         +string $diplome
+        +string $diplome_ar
+        +string $diplome_en
         +string $duree_etudes
         +string $image
         +string $site_web
@@ -128,6 +137,8 @@ classDiagram
         +string $nom_ar
         +string $nom_en
         +text $description
+        +int $domain_id
+        +int $categorie_id
     }
 
     class Categorie {
@@ -136,6 +147,16 @@ classDiagram
         +string $nom
         +string $nom_ar
         +string $nom_en
+    }
+
+    class Domain {
+        <<entity>>
+        +int $id
+        +int $categorie_id
+        +string $nom
+        +string $nom_ar
+        +string $nom_en
+        +text $description
     }
 
     class Ville {
@@ -205,6 +226,27 @@ classDiagram
         <<entity>>
         +int $id
         +date $deadline_date
+    }
+
+    class InstitutionImage {
+        <<entity>>
+        +int $id
+        +int $institution_id
+        +string $image_path
+        +boolean $is_main
+    }
+
+    class InstitutionBacType {
+        <<pivot>>
+        +int $institution_id
+        +int $bac_type_id
+        +float $min_grade
+    }
+
+    class InstitutionDomain {
+        <<pivot>>
+        +int $institution_id
+        +int $domain_id
     }
 
     class SavedSchool {
@@ -322,9 +364,16 @@ classDiagram
     Institution "1" --> "0..*" Review : receives
     Institution "1" --> "0..*" Contest : organizes
     Institution "1" --> "0..*" Deadline : has
+    Institution "1" --> "0..*" InstitutionImage : gallery
+    Institution "*" --> "*" InstitutionBacType : bac types
+    Institution "*" --> "*" InstitutionDomain : domains
     Institution "*" --> "*" Filiere : offers
     Institution "*" --> "0..1" Ville : located in
+    Filiere "*" --> "0..1" Domain : belongs to
     Filiere "*" --> "0..1" Categorie : belongs to
+    Categorie "1" --> "0..*" Domain : contains
+    Domain "*" --> "*" InstitutionDomain : linked to
+    BacType "*" --> "*" InstitutionBacType : linked to
     PremiumPlan "1" --> "0..*" StudentSubscription : plan
 ```
 
@@ -357,6 +406,7 @@ classDiagram
 | **Institution** | institutions | Établissement d'enseignement supérieur |
 | **Filiere** | filieres | Spécialité / programme d'études |
 | **Categorie** | categories | Domaine d'études |
+| **Domain** | domains | Sous-domaine rattaché à une catégorie |
 | **Ville** | villes | Ville marocaine |
 | **BacType** | bac_types | Série de baccalauréat |
 | **Review** | reviews | Avis d'un étudiant sur un établissement |
@@ -365,6 +415,9 @@ classDiagram
 | **Appointment** | appointments | Rendez-vous d'orientation |
 | **AIRecommendation** | ai_recommendations | Recommandation IA |
 | **Deadline** | deadlines | Date limite de candidature |
+| **InstitutionImage** | institution_images | Image de galerie d'un établissement |
+| **InstitutionBacType** | institution_bac_types | Pivot : bac types acceptés + note min |
+| **InstitutionDomain** | institution_domain | Pivot : domaines couverts par l'établissement |
 | **SavedSchool** | saved_schools | École favorite d'un étudiant |
 | **PremiumPlan** | premium_plans | Plan d'abonnement premium |
 | **StudentSubscription** | student_subscriptions | Souscription premium |

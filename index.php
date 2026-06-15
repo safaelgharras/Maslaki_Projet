@@ -1,7 +1,26 @@
 <?php
+/**
+ * index.php — Homepage / landing page for Maslaki.
+ *
+ * The main entry point of the platform. Displays:
+ * - A hero slider with institution images (auto-rotating every 5s)
+ * - Platform statistics (total schools, cities, formation types)
+ * - Popular schools section (up to 3 featured institutions)
+ *
+ * Call-to-action buttons:
+ * - "Browse Schools" → views/institutions.php
+ * - "Register" (guest) or "Dashboard" (logged in)
+ *
+ * Data flow:
+ * 1. Count institutions, cities, and types for stats display
+ * 2. Fetch slider images (Solicode + popular + random fallback)
+ * 3. Render hero with overlay and CTA buttons
+ * 4. Render stats cards
+ * 5. Fetch and render popular institutions
+ */
 require "config/DataBase.php";
 
-// Get real stats with safety
+// Get real stats with safety checks (graceful fallback to 0 on error)
 $schoolCount = 0; $cityCount = 0; $typeCount = 0;
 try {
     $schoolCount = $pdo->query("SELECT COUNT(*) FROM institutions")->fetchColumn();

@@ -1,4 +1,16 @@
 <?php
+/**
+ * ai_process.php — AI orientation results processor and display page.
+ *
+ * Receives bac_branch, average, and city from the AI form (POST).
+ * Queries the database for matching institutions based on:
+ *   - Bac branch → institution type mapping
+ *   - Average vs seuil (admission threshold)
+ *   - City preference (priority boost)
+ * Then calls the Gemini API for personalized recommendations
+ * and displays smart-filtered school cards.
+ */
+
 session_start();
 require "config/DataBase.php";
 require_once "includes/csrf.php";
@@ -6,6 +18,7 @@ require_once "includes/csrf.php";
 $pageTitle = "Résultats IA";
 require "includes/header.php";
 
+// Only accept POST from the AI form
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
     header("Location: views/ai_form.php");
     exit();
@@ -15,7 +28,7 @@ $bac_branch = trim($_POST["bac_branch"]);
 $average = floatval($_POST["average"]);
 $city = trim($_POST["city"]);
 
-// Map bac branches to institution types
+// Map each bac branch to compatible institution types
 $branchToTypes = [
     'SVT'     => ['Engineering', 'Science', 'Technical', 'University', 'Preparatory', 'Private', 'Education'],
     'PC'      => ['Engineering', 'Science', 'Technical', 'University', 'Preparatory', 'Private', 'Education'],

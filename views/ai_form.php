@@ -1,4 +1,12 @@
 <?php
+/**
+ * ai_form.php — AI orientation input form.
+ *
+ * Displays a form where students enter their bac branch, average, and
+ * preferred city. Submits to ../ai_process.php which calls the Gemini API
+ * and returns personalized institution/filiere recommendations.
+ */
+
 require_once "../includes/lang_helper.php";
 $pageTitle = __("ai_orientation");
 require "../includes/header.php";
@@ -10,6 +18,7 @@ require "../includes/header.php";
         <?php echo __('ai_subtitle'); ?>
     </p>
 
+    <!-- Form posts to ai_process.php which handles the Gemini API call -->
     <form method="POST" action="../ai_process.php">
         <div class="form-group">
             <label><?php echo __('bac_branch'); ?></label>

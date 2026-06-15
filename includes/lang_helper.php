@@ -1,4 +1,24 @@
 <?php
+/**
+ * lang_helper.php — Internationalization (i18n) and localization engine.
+ *
+ * Manages the current language selection and provides translation functions.
+ *
+ * Language priority:
+ * 1. ?lang= query parameter (persisted in session + cookie for 30 days)
+ * 2. Session variable
+ * 3. Cookie value
+ * 4. Default: French ('fr')
+ *
+ * Supported languages: French (fr), English (en), Arabic (ar)
+ *
+ * Functions provided:
+ * - __($key) — Translate a key to the current language
+ * - getLang() — Get current language code
+ * - isRTL() — Check if current language is right-to-left (Arabic)
+ * - getLocalizedDbField($row, $field) — Get localized DB column value (e.g., name_ar, name_en)
+ * - formatLocalizedDate($dateStr) — Format a date with localized month name
+ */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

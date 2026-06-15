@@ -1,4 +1,15 @@
 <?php
+/**
+ * mark_notification_read.php — Mark notifications as read (AJAX endpoint).
+ *
+ * Accepts GET parameters:
+ * - ?id=N — Mark a specific notification as read
+ * - ?all=1 — Mark all unread notifications for the user as read
+ *
+ * Uses INSERT ... ON DUPLICATE KEY UPDATE on the user_notifications pivot table
+ * to handle cases where the pivot row may not exist yet.
+ * Returns JSON: {"status": "success"} or {"status": "error", "message": "..."}.
+ */
 session_start();
 require "config/DataBase.php";
 

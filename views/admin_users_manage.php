@@ -1,4 +1,25 @@
 <?php
+/**
+ * admin_users_manage.php — Superadmin-only user role management.
+ *
+ * This page allows the superadmin to:
+ * - View all registered users (students, admins, superadmins)
+ * - Search and filter users by name/email and role
+ * - Promote students to admin role
+ * - Demote admins back to student role
+ *
+ * Security:
+ * - Only superadmin can access this page (require_superadmin guard)
+ * - Cannot modify other superadmins
+ * - Cannot modify own role
+ * - CSRF protection on all POST actions
+ *
+ * Data flow:
+ * 1. Verify superadmin access
+ * 2. Handle POST actions (promote/demote) with CSRF validation
+ * 3. Build filtered/sorted user query (superadmin → admin → student)
+ * 4. Render user list with action buttons
+ */
 require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
@@ -25,30 +46,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $targetUserId = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
     $action = $_POST['action'] ?? '';
 
+    // Validate that the target user actually exists
+    $targetRole = platform_admin_role($pdo, $targetUserId);
+    if ($targetRole === null) {
+        header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_action')));
+        exit();
+    }
+
     if ($targetUserId === $currentUserId) {
         header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_self')));
         exit();
     }
 
-    // Never allow demoting another superadmin
-    $targetRole = platform_admin_role($pdo, $targetUserId);
+    // Never allow modifying another superadmin
     if ($targetRole === 'superadmin') {
         header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_superadmin')));
         exit();
     }
 
-    if ($targetUserId > 0) {
-        if ($action === 'promote') {
-            $stmt = $pdo->prepare("UPDATE students SET role = 'admin' WHERE id = ?");
-            $stmt->execute([$targetUserId]);
-            header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_promote')));
-            exit();
-        } elseif ($action === 'demote') {
-            $stmt = $pdo->prepare("UPDATE students SET role = 'student' WHERE id = ?");
-            $stmt->execute([$targetUserId]);
-            header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_demote')));
-            exit();
-        }
+    if ($action === 'promote') {
+        $stmt = $pdo->prepare("UPDATE students SET role = 'admin' WHERE id = ?");
+        $stmt->execute([$targetUserId]);
+        header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_promote')));
+        exit();
+    } elseif ($action === 'demote') {
+        $stmt = $pdo->prepare("UPDATE students SET role = 'student' WHERE id = ?");
+        $stmt->execute([$targetUserId]);
+        header("Location: admin_users_manage.php?success=" . urlencode(__('admin_users_success_demote')));
+        exit();
     }
 
     header("Location: admin_users_manage.php?error=" . urlencode(__('admin_users_error_action')));

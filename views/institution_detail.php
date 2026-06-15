@@ -1,10 +1,36 @@
 <?php
+/**
+ * institution_detail.php — Full detail page for a single institution.
+ *
+ * Displays comprehensive information about one institution including:
+ * - Hero banner with main image, name, type badge, city, domain tags
+ * - Description section
+ * - Connected sub-schools/faculties (if this is a parent university)
+ * - Photo gallery (from institution_images table)
+ * - Available filières (streams) with domain tags
+ * - Student reviews with star ratings and moderation
+ * - Sidebar with admission info: threshold, bac requirements, diploma, duration, prerequisites
+ * - Links to official website and save/favorite functionality
+ *
+ * Data flow:
+ * 1. Validate institution ID from GET parameter
+ * 2. Fetch institution with ville join for city name
+ * 3. Fetch parent university (if parent_id is set)
+ * 4. Fetch sub-schools (if this institution is a parent)
+ * 5. Fetch domain tags from institution_domain pivot
+ * 6. Fetch filières with domains from institution_filieres pivot
+ * 7. Fetch bac requirements from institution_bac_types pivot
+ * 8. Fetch gallery images
+ * 9. Fetch approved reviews with author info
+ * 10. Render all sections with localized fields
+ */
 require_once "../includes/lang_helper.php";
 $pageTitle = __("institution_details");
 require "../includes/header.php";
 require "../config/DataBase.php";
 require_once "../includes/csrf.php";
 
+// Validate institution ID from URL parameter
 if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
     header("Location: institutions.php");
     exit();
@@ -85,7 +111,9 @@ try {
     unset($dt);
 } catch (Exception $e) {}
 
-// Check specialized path flags
+// Check for specialized school types to show custom UI elements
+// CPGE: Classes Préparatoires aux Grandes Écoles — show excellence ribbon
+// Alternative: coding schools like 1337, YouCode — show tech badge
 $isCPGE = (strpos(strtolower($inst['name']), 'cpge') !== false || $inst['type'] === 'Preparatory');
 $isAlternativeTech = (strpos(strtolower($inst['name']), '1337') !== false || strpos(strtolower($inst['name']), 'youcode') !== false || ($inst['sector_type'] ?? '') === 'alternative');
 
@@ -139,6 +167,12 @@ function translateType($type) {
     return __('type_' . strtolower($type));
 }
 
+/**
+ * Resolve the detail page image for an institution.
+ * Uses a hardcoded map for known institutions, then checks DB image,
+ * then tries standard name.ext patterns in multiple directories.
+ * Falls back to default_school.jpg.
+ */
 function resolveDetailImage($path, $name) {
     $name = trim($name);
     $normalizedName = strtolower($name);

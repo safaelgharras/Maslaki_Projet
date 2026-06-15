@@ -1,20 +1,32 @@
 <?php
+/**
+ * admin_add_institution.php — Admin form to create a new institution.
+ *
+ * Displays a comprehensive form with fields for: name (FR/AR/EN), city,
+ * type, seuil, description, requirements, diplome, duree_etudes, image,
+ * site_web, and more. Submits to ../process_add_institution.php.
+ *
+ * Requires platform admin role (superadmin or manager).
+ */
+
 require_once "../includes/lang_helper.php";
 require "../config/DataBase.php";
 require_once "../includes/platform_admin.php";
 require_once "../includes/csrf.php";
+
+// Block non-admin access
 require_platform_admin($pdo);
 
 $pageTitle = __('admin_add_institution_title');
 require '../includes/header.php';
 
-// Fetch villes for dropdown
+// Fetch villes for the city dropdown
 $villes = [];
 try {
     $villes = $pdo->query("SELECT id, nom, nom_ar, nom_en FROM villes ORDER BY nom ASC")->fetchAll();
 } catch (Exception $e) {}
 
-// Institution types
+// Available institution types for the type dropdown
 $types = ['Engineering', 'Business', 'Science', 'Technical', 'Preparatory', 'Private', 'Education', 'University', 'Digital', 'Art', 'Management', 'Medical'];
 ?>
 

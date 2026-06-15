@@ -1,4 +1,12 @@
 <?php
+/**
+ * submit_review.php — Submit a new review for an institution.
+ *
+ * Handles POST from the review form on institution_detail.php.
+ * Validates authentication, CSRF token, content, and duplicate check.
+ * Inserts review with 'pending' status for admin moderation.
+ * Supports optional star rating (1-5) with fallback if column is missing.
+ */
 require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";

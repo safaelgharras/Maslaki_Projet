@@ -1,4 +1,11 @@
 <?php
+/**
+ * remove_school.php — Remove a saved school from the user's favorites.
+ *
+ * Handles both AJAX and standard POST requests.
+ * Deletes the record from saved_schools table with ownership verification.
+ * Returns JSON for AJAX or redirects with flash messages for standard requests.
+ */
 require_once "includes/lang_helper.php";
 require_once "includes/helpers.php";
 require "config/DataBase.php";

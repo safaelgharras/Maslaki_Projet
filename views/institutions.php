@@ -1,4 +1,28 @@
 <?php
+/**
+ * institutions.php — Display all institutions with filtering and search.
+ *
+ * This is the main institutions listing page. It shows all schools/institutions
+ * in a card grid layout with a sidebar containing multiple filter options:
+ * - Quick search (text input)
+ * - City filter (dropdown from villes table)
+ * - Category filter (dropdown from categories table)
+ * - Domain filter (dynamically loaded via AJAX when category is selected)
+ * - Bac type filter (dropdown from bac_types table)
+ * - Type filter (distinct types from institutions table)
+ *
+ * The page loads all institutions initially, then uses AJAX (search_ajax.php)
+ * to filter results dynamically as users change filters. Each institution card
+ * shows: image, name, type badge, city, diploma, study duration, threshold,
+ * and a save/favorite button (for logged-in users).
+ *
+ * Data flow:
+ * 1. Load filter metadata (villes, categories, bac_types, types)
+ * 2. Load all institutions with localized fields
+ * 3. Load saved school IDs for logged-in users
+ * 4. Render filter sidebar and institution cards
+ * 5. JavaScript handles dynamic filtering via AJAX calls to search_ajax.php
+ */
 require_once "../includes/lang_helper.php";
 $pageTitle = __('institutions');
 require "../includes/header.php";
@@ -6,6 +30,7 @@ require "../config/DataBase.php";
 require_once "../includes/csrf.php";
 
 // Get metadata for filters with safety checks
+// These populate the dropdown selectors in the filter sidebar
 $villes = [];
 $categories = [];
 
@@ -35,9 +60,11 @@ try {
     unset($bt);
 } catch (Exception $e) {}
 
+// Check if user is logged in to show/hide save buttons
 $isLoggedIn = isset($_SESSION['user_id']);
 
-// Initial load
+// Load all institutions for initial page render
+// Sorts by featured institution (id=131), then by popularity, then alphabetically
 $sql = "SELECT * FROM institutions";
 try {
     // Try with is_popular if it exists
@@ -47,6 +74,7 @@ try {
     $sql .= " ORDER BY (id = 131) DESC, name ASC";
 }
 $institutions = $pdo->query($sql)->fetchAll();
+// Localize institution fields for the current language
 foreach ($institutions as &$inst) {
     $inst['name'] = getLocalizedDbField($inst, 'name');
     $inst['description'] = getLocalizedDbField($inst, 'description');
@@ -57,12 +85,17 @@ foreach ($institutions as &$inst) {
 unset($inst);
 
 
-// Get saved IDs
+// Get saved school IDs for the logged-in user to highlight already-saved cards
 $savedIds = [];
 if ($isLoggedIn) {
     $savedIds = $pdo->query("SELECT institution_id FROM saved_schools WHERE student_id = " . $_SESSION['user_id'])->fetchAll(PDO::FETCH_COLUMN);
 }
 
+/**
+ * Resolve the image path for an institution.
+ * Checks multiple candidate paths in order: DB image, special cases, then standard name.ext patterns.
+ * Falls back to default_school.jpg if no image is found.
+ */
 function resolveInstitutionImagePath($institutionName, $dbImage = null) {
     $name = trim((string) ($institutionName ?? ''));
     $normalizedName = strtolower($name);
@@ -105,6 +138,10 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
     return '../assets/images/default_school.jpg';
 }
 
+/**
+ * Translate an institution type key to the current language.
+ * Falls back to the original type string if no translation is found.
+ */
 function translateType($type) {
     $key = 'type_' . strtolower($type);
     $translated = __($key);
@@ -307,6 +344,7 @@ function translateType($type) {
 </style>
 
 <script>
+// Translation strings passed from PHP to JavaScript for client-side rendering
 const langTranslations = {
     schools_found: <?php echo json_encode(__('schools_found')); ?>,
     no_institutions_criteria: <?php echo json_encode(__('no_institutions_criteria')); ?>,
@@ -346,6 +384,10 @@ const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
 let savedIds = <?php echo json_encode($savedIds); ?>;
 const csrfToken = <?php echo json_encode(csrf_token()); ?>;
 
+/**
+ * Perform an AJAX search via search_ajax.php with current filter values.
+ * Debounced by 300ms on text input to avoid excessive requests.
+ */
 function doSearch() {
     const params = new URLSearchParams();
     let searchVal = searchInput.value;
@@ -390,6 +432,10 @@ function translateType(type) {
     return map[type] || type;
 }
 
+/**
+ * Render institution cards from JSON search results.
+ * Replaces the results grid HTML with new cards matching the filtered data.
+ */
 function renderResults(data) {
     if (data.length === 0) {
         resultsGrid.innerHTML = `<div class="empty-state">${langTranslations.no_institutions_criteria}</div>`;
@@ -428,6 +474,10 @@ function renderResults(data) {
     }).join('');
 }
 
+/**
+ * Resolve the card image URL for an institution.
+ * Uses a hardcoded map for known institutions, then falls back to DB image or default.
+ */
 function resolveCardImage(inst) {
     const name = (inst.name || '').trim();
     const normalizedName = name.toLowerCase();

@@ -1,16 +1,25 @@
 <?php
+/**
+ * filiere_details.php — Display details of a specific study program (filiere).
+ *
+ * Shows the filiere's name, description, parent category, and a list of
+ * institutions that offer this program. Accessed from domain_details.php
+ * or orientation_explore.php via ?id=N.
+ */
+
 session_start();
 require "../config/DataBase.php";
 require_once "../includes/lang_helper.php";
 
 $filiereId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+// Redirect to explorer if invalid ID
 if ($filiereId <= 0) {
     header("Location: orientation_explore.php");
     exit();
 }
 
-// Fetch filiere info
+// Fetch filiere info with parent category name
 $stmt = $pdo->prepare("SELECT f.*, c.nom as category_name, c.nom_ar as category_name_ar, c.nom_en as category_name_en 
                        FROM filieres f 
                        LEFT JOIN categories c ON f.categorie_id = c.id 
@@ -18,12 +27,13 @@ $stmt = $pdo->prepare("SELECT f.*, c.nom as category_name, c.nom_ar as category_
 $stmt->execute([$filiereId]);
 $filiere = $stmt->fetch();
 
+// Redirect if filiere not found
 if (!$filiere) {
     header("Location: orientation_explore.php");
     exit();
 }
 
-// Localize
+// Localize filiere fields based on current language
 $filiere['nom'] = getLocalizedDbField($filiere, 'nom');
 $filiere['description'] = getLocalizedDbField($filiere, 'description');
 $filiere['category_name'] = getLocalizedDbField($filiere, 'category_name');
