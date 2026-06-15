@@ -97,6 +97,8 @@ if (isset($_SESSION['user_id'])) {
                 <span class="logo-text">Maslaki</span>
             </a>
             
+            <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+            
             <ul class="nav-links">
                 <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
                 <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
