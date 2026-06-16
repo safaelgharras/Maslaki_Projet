@@ -432,6 +432,9 @@ return [
     // ── Backend Processing Messages ────────────────────────────
     'error_invalid_credentials' => 'Invalid email or password',
     'error_email_exists' => 'This email is already registered',
+    'error_invalid_email' => 'Invalid email address',
+    'error_invalid_name' => 'Invalid full name (minimum 3 characters, letters only)',
+    'error_invalid_city' => 'Invalid city (minimum 2 characters, letters only)',
     'success_registration' => 'Registration successful! Please login.',
     'error_invalid_request' => 'Invalid request',
     'error_invalid_school' => 'Invalid school',

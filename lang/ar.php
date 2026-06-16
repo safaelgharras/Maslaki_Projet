@@ -432,6 +432,9 @@ return [
     // ── Backend Processing Messages ────────────────────────────
     'error_invalid_credentials' => 'بريد إلكتروني أو كلمة مرور غير صالحة',
     'error_email_exists' => 'هذا البريد الإلكتروني مسجل مسبقاً',
+    'error_invalid_email' => 'البريد الإلكتروني غير صالح',
+    'error_invalid_name' => 'الاسم الكامل غير صالح (3 أحرف على الأقل، حروف فقط)',
+    'error_invalid_city' => 'المدينة غير صالحة (حرفان على الأقل، حروف فقط)',
     'success_registration' => 'تم التسجيل بنجاح! يرجى تسجيل الدخول.',
     'error_invalid_request' => 'طلب غير صالح',
     'error_invalid_school' => 'مدرسة غير صالحة',

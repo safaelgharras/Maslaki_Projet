@@ -20,6 +20,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $average    = $_POST["average"];
     $city       = trim($_POST["city"]);
 
+    // Check if city is valid (at least 2 characters, letters and spaces only)
+    if (!preg_match("/^[\p{L}\s'-]{2,50}$/u", $city)) {
+        header("Location: views/register.php?error=" . urlencode(__('error_invalid_city')));
+        exit();
+    }
+
+    // Check if name is valid (at least 3 characters, letters and spaces only)
+    if (!preg_match("/^[\p{L}\s'-]{3,50}$/u", $name)) {
+        header("Location: views/register.php?error=" . urlencode(__('error_invalid_name')));
+        exit();
+    }
+
+    // Check if email is valid
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: views/register.php?error=" . urlencode(__('error_invalid_email')));
+        exit();
+    }
+
     // Check if email already exists to prevent duplicate accounts
     $check = $pdo->prepare("SELECT id FROM students WHERE email = ?");
     $check->execute([$email]);
